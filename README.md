@@ -3,6 +3,10 @@ Python library with common functionality for other Waikato projects.
 
 ## Sub-modules
 
+### file
+Classes and readers for common file types. Currently supports ARFF, CSV and spec files.
+
+---
 ### iterate
 Utility functions for working with iterators and iterables.
 
@@ -87,3 +91,9 @@ twd['three'] = 3
 print(twd[1])  # 'one'
 
 ```
+
+---
+### onehot
+Helper classes for performing one-hot encoding of nominal data.
+
+---
