@@ -3,10 +3,30 @@ Python library with common functionality for other Waikato projects.
 
 ## Sub-modules
 
+### memoise
+Provides memoisation of function calls, so that long-running functions can restore
+their results from disk instead of repeated calling.
+
+Usage:
+```python
+from wai.common import memoise
+
+memo_path: str = "./memo_fib/"
+
+def memo_fib(a: int) -> int:
+    if a == 0 or a == 1:
+        return 1
+    else:
+        return memoise(memo_fib, a - 1, path=memo_path) + memoise(memo_fib, a - 2, path=memo_path)
+
+memoise(memo_fib, 100, path=memo_path)
+```
+
 ### switch
 The switch module provides a switch/case-like pattern for operating with enumerate
-values. See the below code-block for usage options.
+values.
 
+Usage:
 ```python
 from wai.common import switch, case, default, break_
 
@@ -34,3 +54,4 @@ with switch(x):
     if default():
         ...
 ```
+
