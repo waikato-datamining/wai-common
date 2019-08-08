@@ -12,7 +12,9 @@ Instead of:
 
 you would call:
 
-    result = memoise(func, *args, **kwargs, path="/path/to/memo/files/")
+    factory = MemoiserFactory("/path/to/memo/files/")
+    memo_func = factory(func)
+    result = memo_func(*args, **kwargs)
 
 The first call will run the function as usual, but subsequent calls will load
 the result from disk instead.
@@ -26,62 +28,206 @@ import os
 import pickle
 from typing import Callable, Tuple, Dict, Any
 
+# The hashing function to use
+HASH = hashlib.sha256
 
-def memoise(func: Callable, *args, path: str = "." + os.sep, **kwargs):
+# The extension for memo files
+MEMO_EXTENSION = ".memo"
+
+
+class MemoFile:
     """
-    Memoises the result of a function with Pickle, so that long-running
-    functions can be sped up at the expense of disk space. Should only be
-    used with pure functions, as internal state is not taken into account.
-
-    :param path:        The name of the directory to store the pickle file in.
-    :param func:        The function to call.
-    :param args:        The positional arguments to the function.
-    :param kwargs:      The keyword arguments to the function.
-    :return:            The result of calling the function.
+    Class representing .memo files on disk as produced/consumed
+    by the Memoiser class.
     """
-    # Make sure the directory ends with a separator
-    if not path.endswith(os.sep):
-        path += os.sep
+    def __init__(self, directory: str, func: Callable, *args, **kwargs):
+        self.pickled_func_and_args = pickle_function_and_arguments(func, *args, **kwargs)
+        self.code_hash: bytes = hash_function_code(func)
+        self.filename: str = normalise_directory(directory) + get_memo_filename(self.pickled_func_and_args)
 
-    # Create the directory if it doesn't exist
-    if not os.path.exists(path):
-        os.mkdir(path)
+    def exists(self) -> bool:
+        """
+        Whether this memo file exists on disk.
 
-    # Turn the kwargs dict into a tuple
-    picklable_kwargs: PicklableDict = PicklableDict(kwargs)
+        :return:    True if the file exists, False if not.
+        """
+        return os.path.exists(self.filename)
 
-    # Pickle the function and its argument and create a hash
-    # from the bytes
-    pickled_func_and_args = pickle.dumps((func, args, picklable_kwargs))
-    arg_hash = hashlib.sha256(pickled_func_and_args).hexdigest()
+    def save(self, result):
+        """
+        Saves the given result of the function to the file.
 
-    # Hash the function code so we can invalidate when it changes
-    code_hash = hashlib.sha256(func.__code__.co_code).digest()
+        :param result:      The result to save.
+        """
+        with open(self.filename, "wb") as file:
+            file.write(self.pickled_func_and_args)
+            file.write(self.code_hash)
+            pickle.dump(result, file)
 
-    # Create a filename from the hash
-    filename: str = path + arg_hash[-16:] + ".memo"
+    def load(self):
+        """
+        Loads the result from this memo file. Raises an error if the
+        result can't be loaded for any reason.
 
-    # Attempt to read the results from file
-    try:
-        with open(filename, "rb") as file:
-            stored_func_and_args = file.read(len(pickled_func_and_args))
-            stored_code_hash = file.read(len(code_hash))
+        :return:    The saved result.
+        """
+        try:
+            with open(self.filename, "rb") as file:
+                # Check that the file is valid
+                self._check_stored_func_and_args(file)
+                self._check_stored_code_hash(file)
 
-            if pickled_func_and_args == stored_func_and_args and code_hash == stored_code_hash:
+                # Return the stored result
                 return pickle.load(file)
-    except Exception:
-        pass
 
-    # Generate the result
-    result = func(*args, **kwargs)
+        # Just re-raise any FNF or already-wrapped errors
+        except (FileNotFoundError, InvalidMemoFileError):
+            raise
 
-    # Memoise the result for next time
-    with open(filename, "wb") as file:
-        file.write(pickled_func_and_args)
-        file.write(code_hash)
-        pickle.dump(result, file)
+        # Wrap any other errors
+        except Exception as e:
+            raise InvalidMemoFileError("Error reading " + self.filename + ": " + str(e)) from e
 
-    return result
+    def _check_stored_func_and_args(self, file):
+        """
+        Checks if the function/arguments stored in the given file
+        are valid for this memo-file. Raises an error if not, and
+        simply returns if they do.
+
+        :param file:    The file handle.
+        """
+        try:
+            stored_func_and_args = file.read(len(self.pickled_func_and_args))
+        except Exception as e:
+            raise InvalidMemoFileError("Error reading stored function/arguments from " +
+                                       self.filename + ": " + str(e)) from e
+
+        if self.pickled_func_and_args != stored_func_and_args:
+            raise InvalidMemoFileError("Hash collision for " + self.filename)
+
+    def _check_stored_code_hash(self, file):
+        """
+        Checks if the code hash stored in the given file
+        is valid for this memo-file. Raises an error if not, and
+        simply returns if it is.
+
+        :param file:    The file handle.
+        """
+        try:
+            stored_code_hash = file.read(len(self.code_hash))
+        except Exception as e:
+            raise InvalidMemoFileError("Error reading stored code hash from " +
+                                       self.filename + ": " + str(e)) from e
+
+        if self.code_hash == stored_code_hash:
+            raise InvalidMemoFileError("Function code change invalidates " + self.filename)
+
+
+class Memoiser:
+    """
+    Class that acts like the given function, except memoises the result
+    to disk. If the function is then called with the same arguments,
+    reads the result from disk instead.
+    """
+    def __init__(self, func: Callable, save_directory: str = ""):
+        self.func: Callable = func
+        self.save_directory: str = normalise_directory(save_directory)
+
+        # Create the save directory if it doesn't exist yet
+        if not os.path.exists(self.save_directory):
+            os.mkdir(self.save_directory)
+
+    def __call__(self, *args, **kwargs):
+        # Get the memo file to use for this function/arguments
+        memo_file: MemoFile = MemoFile(self.save_directory, self.func, *args, **kwargs)
+
+        # Try to load the result
+        try:
+            if memo_file.exists():
+                return memo_file.load()
+        except InvalidMemoFileError:
+            # Continue to normal function call if file loading fails
+            pass
+
+        # If loading failed, call the function
+        result = self.func(*args, **kwargs)
+
+        # Save the result for next time
+        memo_file.save(result)
+
+        # Return the result
+        return result
+
+
+class MemoiserFactory:
+    """
+    Class that produces Memoisers all using the same save directory.
+    """
+    def __init__(self, save_directory: str = ""):
+        self.save_directory: str = save_directory
+
+    def __call__(self, func: Callable) -> Memoiser:
+        return Memoiser(func, self.save_directory)
+
+
+class InvalidMemoFileError(Exception):
+    """
+    Error for when a memo file is invalidated by a change in function code,
+    or a hash-collision.
+    """
+    pass
+
+
+def normalise_directory(directory: str) -> str:
+    """
+    Normalises a directory string so that a filename can
+    be directly appended and used.
+
+    :param directory:   The directory string to normalise.
+    :return:            The normalised directory string.
+    """
+    # Add the final separator if not cwd and not already present
+    if directory != "" and not directory.endswith(os.sep):
+        directory += os.sep
+
+    return directory
+
+
+def get_memo_filename(data: bytes) -> str:
+    """
+    Generates a memo filename for a bytes.
+
+    :param data:    The bytes.
+    :return:        The filename.
+    """
+    # Hash the data and get the hex representation as a string
+    data_hash = HASH(data).hexdigest()
+
+    # Return the last 16 hex characters of the hash with the extension
+    return data_hash[-16:] + MEMO_EXTENSION
+
+
+def pickle_function_and_arguments(func: Callable, *args, **kwargs):
+    """
+    Creates a binary representation of a function and its arguments.
+
+    :param func:    The function.
+    :param args:    The positional arguments to the function.
+    :param kwargs:  The keyword arguments to the function.
+    :return:        The binary pickle representation.
+    """
+    return pickle.dumps((func, args, PicklableDict(kwargs)))
+
+
+def hash_function_code(func: Callable) -> bytes:
+    """
+    Hashes the code of a function so that it can be identified
+    when it changes.
+
+    :param func:    The function to hash.
+    :return:        The hash bytes.
+    """
+    return HASH(func.__code__.co_code).digest()
 
 
 class PicklableDict:

@@ -9,17 +9,20 @@ their results from disk instead of repeated calling.
 
 Usage:
 ```python
-from wai.common import memoise
+from wai.common import MemoiserFactory
 
-memo_path: str = "./memo_fib/"
+def my_long_running_function(*args, **kwargs):
+    ...
 
-def memo_fib(a: int) -> int:
-    if a == 0 or a == 1:
-        return 1
-    else:
-        return memoise(memo_fib, a - 1, path=memo_path) + memoise(memo_fib, a - 2, path=memo_path)
+factory = MemoiserFactory("./memo_fib/")
+my_memo_function = factory(my_long_running_function)
 
-memoise(memo_fib, 100, path=memo_path)
+args, kwargs = ...
+result1 = my_memo_function(*args, **kwargs)
+result2 = my_memo_function(*args, **kwargs)  # Second call loads result from disk
+
+assert result1 == result2
+
 ```
 ---
 ### pool
