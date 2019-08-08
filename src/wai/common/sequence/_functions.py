@@ -1,4 +1,18 @@
-from typing import Sequence, Any, Iterable, Iterator, Union
+from typing import Iterable, Union, Sequence
+
+
+def flatten(sequence: Sequence) -> Sequence:
+    """
+    Flattens a sequence into a new sequence of the same type.
+    Expects that the sequence-type's __init__ method takes an
+    iterator (as in list and tuple).
+
+    :param sequence:    The sequence to flatten.
+    :return:            A new sequence of the same type, but flattened.
+    """
+    # Use flattening iterator to initialise a new sequence of the same type
+    from ..iterate import flatten
+    return type(sequence)(flatten(sequence))
 
 
 def normalise_index(index: int, length: Union[int, Sequence]) -> int:
@@ -18,16 +32,19 @@ def normalise_index(index: int, length: Union[int, Sequence]) -> int:
     return index % length
 
 
-def extract_by_index(sequence: Sequence[Any], indices: Iterable[int]) -> Iterator[Any]:
+def extract_by_index(sequence: Sequence, indices: Iterable[int]) -> Sequence:
     """
-    Extracts elements of the given sequence.
+    Extracts elements of the given sequence. Returned type is the
+    same as the given sequence. Expects that the sequence-type's
+    __init__ method takes an iterator (as in list and tuple).
 
     :param sequence:    The sequence to get elements from.
     :param indices:     The indices of the elements to get.
     :return:            The selected elements.
     """
-    for index in indices:
-        yield sequence[index]
+    # Use extracting iterator to initialise a new sequence of the same type
+    from ..iterate import extract_by_index
+    return type(sequence)(extract_by_index(sequence, indices))
 
 
 def binary_search(sequence: Sequence[int], target: int) -> int:
