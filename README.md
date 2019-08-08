@@ -21,7 +21,14 @@ def memo_fib(a: int) -> int:
 
 memoise(memo_fib, 100, path=memo_path)
 ```
+---
+### pool
+Utility functions for working with `multiprocessing.Pool` objects. Provides:
+* **num_processes**: Gets the number of sub-processes managed by the pool (normally
+                     a protected member).
+* **run_on_all**: Runs the given function on all sub-processes managed by a pool.
 
+---
 ### switch
 The switch module provides a switch/case-like pattern for operating with enumerate
 values.
