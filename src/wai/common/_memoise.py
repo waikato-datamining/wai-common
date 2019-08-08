@@ -164,10 +164,26 @@ class MemoiserFactory:
     Class that produces Memoisers all using the same save directory.
     """
     def __init__(self, save_directory: str = ""):
-        self.save_directory: str = save_directory
+        self.save_directory: str = normalise_directory(save_directory)
 
     def __call__(self, func: Callable) -> Memoiser:
         return Memoiser(func, self.save_directory)
+
+    def sub_dir(self, path: str) -> 'MemoiserFactory':
+        """
+        Returns a factory for a sub-directory of this one.
+
+        :param path:    The extended path of the sub-directory.
+        :return:        The factory.
+        """
+        # Normalise the path
+        path = normalise_directory(path)
+
+        # Remove any leading separator
+        if path.startswith(os.sep):
+            path = path[1:]
+
+        return MemoiserFactory(self.save_directory + path)
 
 
 class InvalidMemoFileError(Exception):
