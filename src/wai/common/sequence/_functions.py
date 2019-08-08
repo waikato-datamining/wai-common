@@ -1,7 +1,11 @@
-from typing import Iterable, Union, Sequence
+from typing import Iterable, Union, Sequence, TypeVar
+
+ElementType1 = TypeVar("ElementType1")
+ElementType2 = TypeVar("ElementType2")
+SequenceType = TypeVar("SequenceType", bound=Sequence)
 
 
-def flatten(sequence: Sequence) -> Sequence:
+def flatten(sequence: SequenceType[Union[ElementType1, Sequence[ElementType2]]]) -> SequenceType[Union[ElementType1, ElementType2]]:
     """
     Flattens a sequence into a new sequence of the same type.
     Expects that the sequence-type's __init__ method takes an
@@ -32,7 +36,7 @@ def normalise_index(index: int, length: Union[int, Sequence]) -> int:
     return index % length
 
 
-def extract_by_index(sequence: Sequence, indices: Iterable[int]) -> Sequence:
+def extract_by_index(sequence: SequenceType[ElementType1], indices: Iterable[int]) -> SequenceType[ElementType1]:
     """
     Extracts elements of the given sequence. Returned type is the
     same as the given sequence. Expects that the sequence-type's
