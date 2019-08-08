@@ -64,4 +64,18 @@ with switch(x):
     if default():
         ...
 ```
+---
+### TwoWayDict
+Provides the TwoWayDict class, a dictionary which can be accessed by key or by value.
 
+```python
+from wai.common import TwoWayDict
+
+twd = TwoWayDict[str, int]()
+twd['one'] = 1
+twd[2] = 'two'
+twd['three'] = 3
+
+print(twd[1])  # 'one'
+
+```

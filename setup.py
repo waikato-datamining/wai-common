@@ -52,6 +52,8 @@ setup(
     version="0.0.1",
     author='Corey Sterling',
     author_email='coreytsterling@gmail.com',
-    install_requires=[],
+    install_requires=[
+        "typing-inspect"
+    ],
     include_package_data=True
 )
