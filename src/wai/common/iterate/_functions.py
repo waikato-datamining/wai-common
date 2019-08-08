@@ -1,4 +1,15 @@
-from typing import Iterable, Iterator, Optional
+from typing import Iterable, Iterator, Optional, Sequence
+
+
+def is_iterable(obj) -> bool:
+    """
+    Determines if the given object is an iterable.
+
+    :param obj:     The object to check.
+    :return:        True if the object is iterable,
+                    False if not.
+    """
+    return safe_iter(obj) is not None
 
 
 def safe_iter(obj) -> Optional[Iterator]:
@@ -50,3 +61,15 @@ def invert_indices(indices: Iterable[int], size: int) -> Iterator[int]:
     for i in range(size):
         if i not in index_set:
             yield i
+
+
+def extract_by_index(sequence: Sequence, indices: Iterable[int]) -> Iterator:
+    """
+    Extracts elements of the given sequence.
+
+    :param sequence:    The sequence to get elements from.
+    :param indices:     The indices of the elements to get.
+    :return:            The selected elements.
+    """
+    for index in indices:
+        yield sequence[index]
