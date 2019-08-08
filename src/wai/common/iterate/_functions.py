@@ -44,8 +44,9 @@ def flatten(iterable: Iterable) -> Iterator:
             yield element
 
         # Otherwise yield each sub-element of the flattened element
-        for sub_element in flatten(element_iter):
-            yield sub_element
+        else:
+            for sub_element in flatten(element_iter):
+                yield sub_element
 
 
 def invert_indices(indices: Iterable[int], size: int) -> Iterator[int]:
