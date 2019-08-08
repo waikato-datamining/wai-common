@@ -3,6 +3,14 @@ Python library with common functionality for other Waikato projects.
 
 ## Sub-modules
 
+### iterate
+Utility functions for working with iterators and iterables.
+
+---
+### sequence
+Utility functions for working with sequences.
+
+---
 ### memoise
 Provides memoisation of function calls, so that long-running functions can restore
 their results from disk instead of repeated calling.
