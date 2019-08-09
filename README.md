@@ -7,6 +7,10 @@ Python library with common functionality for other Waikato projects.
 Functions for working with abstract classes and methods.
 
 ---
+### decorator
+Custom decorators.
+
+---
 ### file
 Classes and readers for common file types. Currently supports ARFF, CSV and spec files.
 
