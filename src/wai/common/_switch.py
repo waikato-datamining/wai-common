@@ -26,8 +26,7 @@ with switch(value):
 
 """
 import threading
-from enum import Enum
-from typing import List, Dict, TypeVar
+from typing import List, Dict
 
 # The context-stack for each thread, so we can work out which
 # switch statement the case function should work with
@@ -97,16 +96,12 @@ def get_current_context_manager() -> 'SwitchContextManager':
     return stack[-1]
 
 
-# The type of enumeration being switched on
-OnType = TypeVar('OnType', bound=Enum)
-
-
 class SwitchContextManager:
     """
     Context manager for switch-case blocks.
     """
-    def __init__(self, on: OnType):
-        self.on: OnType = on
+    def __init__(self, on):
+        self.on = on
         self.matched: bool = False
         self.executed_default: bool = False
 
@@ -122,12 +117,12 @@ class SwitchContextManager:
         # don't propagate the exception
         return exc_type is BreakSwitchException
 
-    def case(self, first_case: OnType, *cases: OnType) -> bool:
+    def case(self, first_case, *cases) -> bool:
         # Check we haven't already executed default
         self.check_default_executed()
 
         # If we match any of the provided cases, always match from now on
-        if self.on is first_case or self.on in cases:
+        if self.on in (first_case, *cases):
             self.matched = True
 
         # Allows for fall-through
@@ -149,7 +144,7 @@ class SwitchContextManager:
             break_()
 
 
-def switch(on: OnType) -> SwitchContextManager:
+def switch(on) -> SwitchContextManager:
     """
     Sugar method for setting up the switch-case context manager.
 
@@ -159,7 +154,7 @@ def switch(on: OnType) -> SwitchContextManager:
     return SwitchContextManager(on)
 
 
-def case(first_case: OnType, *cases: OnType) -> bool:
+def case(first_case, *cases) -> bool:
     """
     Sugar method which checks if any of the given cases matches
     the switch statement.
