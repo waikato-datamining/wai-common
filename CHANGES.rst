@@ -13,3 +13,8 @@ Changelog
   Onus is on the user to handle modifications of the switched value during switching.
 - Added **abc** package, with utilities for working with abstract classes/methods.
 - Added **decorator** package, with custom decorators.
+
+0.0.3 (????-??-??)
+-------------------
+
+- Added load_dir function to file package, which can load all files in a directory.
