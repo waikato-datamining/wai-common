@@ -6,7 +6,7 @@ Changelog
 
 - Initial release
 
-0.0.2 (????-??-??)
+0.0.2 (2019-08-09)
 -------------------
 
 - Removed restriction that switch only work with enums. Now can switch on any type.
