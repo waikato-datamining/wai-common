@@ -3,6 +3,10 @@ Python library with common functionality for other Waikato projects.
 
 ## Sub-modules
 
+### abc
+Functions for working with abstract classes and methods.
+
+---
 ### file
 Classes and readers for common file types. Currently supports ARFF, CSV and spec files.
 
