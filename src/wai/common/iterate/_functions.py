@@ -1,4 +1,6 @@
-from typing import Iterable, Iterator, Optional, Sequence
+from typing import Iterable, Iterator, Optional, Sequence, Tuple
+
+from .._typing import Predicate, T
 
 
 def is_iterable(obj) -> bool:
@@ -74,3 +76,19 @@ def extract_by_index(sequence: Sequence, indices: Iterable[int]) -> Iterator:
     """
     for index in indices:
         yield sequence[index]
+
+
+def first(iterable: Iterable[T], predicate: Predicate[T]) -> Tuple[int, Optional[T]]:
+    """
+    Finds the first value in an iterable to meet a given predicate.
+
+    :param iterable:    The iterable to search.
+    :param predicate:   The predicate to match.
+    :return:            The enumerated position of and element found.
+    """
+    for iteration, value in enumerate(iterable):
+        if predicate(value):
+            return iteration, value
+
+    # Predicate not satisfied
+    return -1, None

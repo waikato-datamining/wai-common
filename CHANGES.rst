@@ -22,3 +22,4 @@ Changelog
 - Added Interval class representing intervals on the number line.
 - Added exception InvalidStateError for classes that get into an invalid setup.
 - Added typing module for type-related functionality.
+- Added first, which finds the first element of an iterable to match a predicate.
