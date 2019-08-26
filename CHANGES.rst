@@ -18,3 +18,4 @@ Changelog
 -------------------
 
 - Added load_dir function to file package, which can load all files in a directory.
+- Added is_hashable to test if an object is hashable.
