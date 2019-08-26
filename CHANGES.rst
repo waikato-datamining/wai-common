@@ -21,3 +21,4 @@ Changelog
 - Added is_hashable to test if an object is hashable.
 - Added Interval class representing intervals on the number line.
 - Added exception InvalidStateError for classes that get into an invalid setup.
+- Added typing module for type-related functionality.
