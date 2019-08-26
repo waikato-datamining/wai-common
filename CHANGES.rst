@@ -19,3 +19,5 @@ Changelog
 
 - Added load_dir function to file package, which can load all files in a directory.
 - Added is_hashable to test if an object is hashable.
+- Added Interval class representing intervals on the number line.
+- Added exception InvalidStateError for classes that get into an invalid setup.
