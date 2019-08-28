@@ -27,3 +27,4 @@ Changelog
 - Added random, which returns the elements of an iterator in random order.
 - Added meta package, with functions to set and retrieve arbitrary meta-data against
   objects.
+- Added ConstantIterator class, which returns the same value over and over again.
