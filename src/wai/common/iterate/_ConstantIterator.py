@@ -1,5 +1,4 @@
-from collections import Iterator
-from typing import Optional
+from typing import Optional, Iterator
 
 from .._typing import T
 
