@@ -15,11 +15,14 @@ def with_metadata(obj: T, key: str, value: Any) -> T:
     :return:        obj.
     """
     # Create the meta-data map
-    if META_DATA_KEY not in obj.__dict__:
-        obj.__dict__[META_DATA_KEY] = {}
+    if not hasattr(obj, META_DATA_KEY):
+        try:
+            setattr(obj, META_DATA_KEY, {})
+        except AttributeError as e:
+            raise ValueError(f"Cannot set meta-data against objects of type {obj.__class__.__name__}") from e
 
     # Put this mapping in the map
-    obj.__dict__[META_DATA_KEY][key] = value
+    getattr(obj, META_DATA_KEY)[key] = value
 
     return obj
 
@@ -32,7 +35,7 @@ def get_metadata(obj: Any, key: str) -> Any:
     :param key:     The meta-data key to extract from.
     :return:        The value of the meta-data.
     """
-    return obj.__dict__[META_DATA_KEY][key]
+    return getattr(obj, META_DATA_KEY)[key]
 
 
 def has_metadata(obj: Any, key: str) -> bool:
@@ -45,4 +48,4 @@ def has_metadata(obj: Any, key: str) -> bool:
     :return:        True if there is meta-data associated with the
                     given key, False if not.
     """
-    return META_DATA_KEY in obj.__dict__ and key in obj.__dict__[META_DATA_KEY]
+    return hasattr(obj, META_DATA_KEY) and key in getattr(obj, META_DATA_KEY)
