@@ -1,4 +1,5 @@
-from typing import Iterable, Iterator, Optional, Sequence, Tuple
+from random import Random, shuffle
+from typing import Iterable, Iterator, Optional, Sequence, Tuple, List
 
 from .._typing import Predicate, T
 
@@ -92,3 +93,24 @@ def first(iterable: Iterable[T], predicate: Predicate[T]) -> Tuple[int, Optional
 
     # Predicate not satisfied
     return -1, None
+
+
+def random(iterator: Iterator[T], rand: Random = None) -> Iterator[T]:
+    """
+    Returns the elements of the given iterator in a random order, as
+    determined by the given source of randomness.
+
+    :param iterator:    The iterator to randomise.
+    :param rand:      The source of randomness.
+    :return:            An iterator over the same elements in random order.
+    """
+    # Buffer the elements of the iterator
+    buffer: List[T] = list(iterator)
+
+    # Shuffle them
+    if rand is not None:
+        rand.shuffle(buffer)
+    else:
+        shuffle(buffer)
+
+    return iter(buffer)
