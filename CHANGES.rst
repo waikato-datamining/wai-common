@@ -24,5 +24,6 @@ Changelog
 - Added typing module for type-related functionality.
 - Added first, which finds the first element of an iterable to match a predicate.
 - Added statistics package with quartile functions.
+- Added random, which returns the elements of an iterator in random order.
 - Added meta package, with functions to set and retrieve arbitrary meta-data against
   objects.
