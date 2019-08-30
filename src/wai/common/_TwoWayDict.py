@@ -1,4 +1,4 @@
-from typing import Generic, TypeVar, Type, Union, Optional
+from typing import Generic, TypeVar, Type, Union, Optional, Any
 
 import typing_inspect
 
@@ -35,6 +35,58 @@ class TwoWayDict(Generic[FORWARD_TYPE, REVERSE_TYPE]):
         Gets the type of the reverse-direction keys for this two-way dict.
         """
         return typing_inspect.get_args(self.__orig_class__)[1]
+
+    def matches_forward_type(self, value: Any, only: bool = False) -> bool:
+        """
+        Whether the type of the given key matches the forward type.
+
+        :param value:   The key to check.
+        :param only:    Whether the value is not also allowed to match the
+                        reverse type.
+        :return:        True if matches, False if not.
+        """
+        forward_type: Type[FORWARD_TYPE] = self.forward_type()
+
+        if typing_inspect.get_origin(forward_type) is type:
+            if not isinstance(value, type):
+                return False
+            forward_type = typing_inspect.get_args(forward_type)[0]
+            check = issubclass
+        else:
+            check = isinstance
+
+        matches: bool = check(value, forward_type)
+
+        if matches and only:
+            matches = matches and not self.matches_reverse_type(value)
+
+        return matches
+
+    def matches_reverse_type(self, value: Any, only: bool = False) -> bool:
+        """
+        Whether the type of the given key matches the reverse type.
+
+        :param value:   The key to check.
+        :param only:    Whether the value is not also allowed to match the
+                        reverse type.
+        :return:        True if matches, False if not.
+        """
+        reverse_type: Type[REVERSE_TYPE] = self.reverse_type()
+
+        if typing_inspect.get_origin(reverse_type) is type:
+            if not isinstance(value, type):
+                return False
+            reverse_type = typing_inspect.get_args(reverse_type)[0]
+            check = issubclass
+        else:
+            check = isinstance
+
+        matches: bool = check(value, reverse_type)
+
+        if matches and only:
+            matches = matches and not self.matches_forward_type(value)
+
+        return matches
 
     def both_types_same(self) -> bool:
         """
@@ -200,16 +252,16 @@ class TwoWayDict(Generic[FORWARD_TYPE, REVERSE_TYPE]):
             raise TypeError("Can't auto-differentiate direction when both types the same")
 
         if value is not None:
-            if isinstance(key, self.forward_type()) and isinstance(value, self.reverse_type()):
+            if self.matches_forward_type(key) and self.matches_reverse_type(value):
                 return forward_result
-            elif isinstance(key, self.reverse_type()) and isinstance(value, self.forward_type()):
+            elif self.matches_reverse_type(key) and self.matches_forward_type(value):
                 return reverse_result
             else:
                 raise TypeError("Key and value types do not align with dict types")
         else:
-            if isinstance(key, self.forward_type()) and not isinstance(key, self.reverse_type()):
+            if self.matches_forward_type(key, True):
                 return forward_result
-            elif isinstance(key, self.reverse_type()) and not isinstance(key, self.forward_type()):
+            elif self.matches_reverse_type(key, True):
                 return reverse_result
             else:
                 raise TypeError("Key type does not align with dict types")

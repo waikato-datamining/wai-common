@@ -29,3 +29,4 @@ Changelog
   objects.
 - Added ConstantIterator class, which returns the same value over and over again.
 - Added metadata module to iterate, for working with metadata in iterables of objects.
+- Modified TwoWayDict so type-inference works with Python-3.7.
