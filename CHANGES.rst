@@ -14,7 +14,7 @@ Changelog
 - Added **abc** package, with utilities for working with abstract classes/methods.
 - Added **decorator** package, with custom decorators.
 
-0.0.3 (????-??-??)
+0.0.3 (2019-08-30)
 -------------------
 
 - Added load_dir function to file package, which can load all files in a directory.
