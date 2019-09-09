@@ -30,3 +30,8 @@ Changelog
 - Added ConstantIterator class, which returns the same value over and over again.
 - Added metadata module to iterate, for working with metadata in iterables of objects.
 - Modified TwoWayDict so type-inference works with Python-3.7.
+
+0.0.4 (????-??-??)
+-------------------
+
+- Two new iterable functions, all_meet_predicate and any_meets_predicate.

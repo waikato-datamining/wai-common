@@ -1,5 +1,5 @@
 from random import Random, shuffle
-from typing import Iterable, Iterator, Optional, Sequence, Tuple, List
+from typing import Iterable, Iterator, Optional, Sequence, Tuple, List, Callable
 
 from .._typing import Predicate, T
 
@@ -114,3 +114,27 @@ def random(iterator: Iterator[T], rand: Random = None) -> Iterator[T]:
         shuffle(buffer)
 
     return iter(buffer)
+
+
+def all_meet_predicate(iterable: Iterable[T], predicate: Callable[[T], bool]) -> bool:
+    """
+    Version of all which checks values against a predicate.
+
+    :param iterable:    An iterable of values.
+    :param predicate:   A predicate which checks those values.
+    :return:            True if all values meet the predicate,
+                        False if not.
+    """
+    return all(map(predicate, iterable))
+
+
+def any_meets_predicate(iterable: Iterable[T], predicate: Callable[[T], bool]) -> bool:
+    """
+    Version of any which checks values against a predicate.
+
+    :param iterable:    An iterable of values.
+    :param predicate:   A predicate which checks those values.
+    :return:            True if any value meets the predicate,
+                        False if not.
+    """
+    return any(map(predicate, iterable))
