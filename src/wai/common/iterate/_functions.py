@@ -116,7 +116,7 @@ def random(iterator: Iterator[T], rand: Random = None) -> Iterator[T]:
     return iter(buffer)
 
 
-def all_meet_predicate(iterable: Iterable[T], predicate: Callable[[T], bool]) -> bool:
+def all_meet_predicate(iterable: Iterable[T], predicate: Predicate[T]) -> bool:
     """
     Version of all which checks values against a predicate.
 
@@ -128,7 +128,7 @@ def all_meet_predicate(iterable: Iterable[T], predicate: Callable[[T], bool]) ->
     return all(map(predicate, iterable))
 
 
-def any_meets_predicate(iterable: Iterable[T], predicate: Callable[[T], bool]) -> bool:
+def any_meets_predicate(iterable: Iterable[T], predicate: Predicate[T]) -> bool:
     """
     Version of any which checks values against a predicate.
 
