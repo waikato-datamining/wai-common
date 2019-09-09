@@ -37,3 +37,4 @@ Changelog
 - Two new iterable functions, all_meet_predicate and any_meets_predicate.
 - Added meta-functions for determining if methods in base-classes have been overridden
   by sub-classes.
+- Rejigged abc package.

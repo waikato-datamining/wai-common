@@ -1,4 +1,6 @@
-from typing import Tuple, Dict, Any
+from typing import Tuple, Dict, Any, Set
+
+from .constants import ABSTRACT_METHOD_ATTRIBUTE, ABSTRACT_CLASS_ATTRIBUTE
 
 
 def get_abstract_methods(bases: Tuple, namespace: Dict[str, Any]):
@@ -13,7 +15,7 @@ def get_abstract_methods(bases: Tuple, namespace: Dict[str, Any]):
     abstract_methods = set()
 
     for base in bases:
-        abstract_methods.update(getattr(base, '__abstractmethods__', set()))
+        abstract_methods.update(abstract_methods_of(base))
 
     for name, value in namespace.items():
         if is_abstract_function(value):
@@ -46,4 +48,14 @@ def is_abstract_function(func):
     :return:        True if the function is abstract,
                     False if not.
     """
-    return getattr(func, '__isabstractmethod__', False)
+    return getattr(func, ABSTRACT_METHOD_ATTRIBUTE, False)
+
+
+def abstract_methods_of(cls) -> Set[str]:
+    """
+    Gets the abstract methods of a class.
+
+    :param cls:     The class to get the abstract methods from.
+    :return:
+    """
+    return getattr(cls, ABSTRACT_CLASS_ATTRIBUTE, set())
