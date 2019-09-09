@@ -59,3 +59,14 @@ def abstract_methods_of(cls) -> Set[str]:
     :return:
     """
     return getattr(cls, ABSTRACT_CLASS_ATTRIBUTE, set())
+
+
+def is_abstract_class(cls) -> bool:
+    """
+    Checks if the given class is abstract.
+
+    :param cls:     The class to check.
+    :return:        True if the given class is abstract,
+                    False if not.
+    """
+    return len(abstract_methods_of(cls)) > 0
