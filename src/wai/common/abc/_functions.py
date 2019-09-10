@@ -20,9 +20,8 @@ def get_abstract_methods(bases: Tuple, namespace: Dict[str, Any]):
     for name, value in namespace.items():
         if is_abstract_function(value):
             abstract_methods.add(name)
-        else:
-            if name in abstract_methods:
-                abstract_methods.remove(name)
+        elif name in abstract_methods:
+            abstract_methods.remove(name)
 
     return abstract_methods
 
