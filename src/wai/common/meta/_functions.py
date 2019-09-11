@@ -1,5 +1,5 @@
 import inspect
-from typing import Optional
+from typing import Optional, Callable
 
 
 def has_been_overridden(function, obj) -> bool:
@@ -104,3 +104,22 @@ def unbind(method):
         return method
 
     return method.__func__
+
+
+def does_not_raise(func: Callable, *args, **kwargs) -> bool:
+    """
+    Calls the given function with the given arguments, and reports
+    whether it raised an exception or not.
+
+    :param func:    The function to call.
+    :param args:    The positional arguments to the function.
+    :param kwargs:  The keyword arguments to the function.
+    :return:        True if the call completed without raising an exception,
+                    False if an exception was raised.
+    """
+    try:
+        func(*args, **kwargs)
+    except Exception:
+        return False
+
+    return True
