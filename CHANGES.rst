@@ -38,3 +38,6 @@ Changelog
 - Added meta-functions for determining if methods in base-classes have been overridden
   by sub-classes.
 - Rejigged abc package.
+- Added JSON package, with tools for working with JSON and JSONSchema. Also specifies the
+  configuration class, which allows for easy manipulation of JSON files in an object-oriented
+  manner.

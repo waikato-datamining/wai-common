@@ -2,3 +2,4 @@
 # https://caremad.io/posts/2013/07/setup-vs-requirement/
 -e .
 typing-inspect==0.4.0
+jsonschema==3.0.1
