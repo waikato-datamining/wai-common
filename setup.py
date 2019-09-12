@@ -37,7 +37,8 @@ setup(
     author='Corey Sterling',
     author_email='coreytsterling@gmail.com',
     install_requires=[
-        "typing-inspect"
+        "typing-inspect",
+        "jsonschema"
     ],
     include_package_data=True
 )
