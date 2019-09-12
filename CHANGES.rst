@@ -31,7 +31,7 @@ Changelog
 - Added metadata module to iterate, for working with metadata in iterables of objects.
 - Modified TwoWayDict so type-inference works with Python-3.7.
 
-0.0.4 (????-??-??)
+0.0.4 (2019-09-13)
 -------------------
 
 - Two new iterable functions, all_meet_predicate and any_meets_predicate.
