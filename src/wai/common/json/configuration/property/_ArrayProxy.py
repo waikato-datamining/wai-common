@@ -6,15 +6,9 @@ from ...validator import JSONValidatorClass
 from ...serialise import JSONBiserialisable, JSONSerialisable
 from ...schema import JSONSchema, regular_array
 from ._Property import Property
+from ._DummyInstance import DummyInstance
 
 ElementType = TypeVar("ElementType")
-
-
-class ArrayProxyKey:
-    """
-    Dummy class which acts as the reference to an element in the array.
-    """
-    pass
 
 
 class ArrayProxy(JSONValidatorClass, JSONBiserialisable['ArrayProxy'], Generic[ElementType]):
@@ -23,7 +17,7 @@ class ArrayProxy(JSONValidatorClass, JSONBiserialisable['ArrayProxy'], Generic[E
     """
     def __init__(self, initial_values: Optional[List[ElementType]] = None):
         # The references to the list elements in the sub-property
-        self.__key_list: List[ArrayProxyKey] = []
+        self.__key_list: List[DummyInstance] = []
 
         # Add any initial values
         if initial_values is not None:
@@ -71,7 +65,7 @@ class ArrayProxy(JSONValidatorClass, JSONBiserialisable['ArrayProxy'], Generic[E
         instance = cls()
 
         # Create an initial key list
-        instance.__key_list = [ArrayProxyKey() for _ in range(len(raw_json))]
+        instance.__key_list = [DummyInstance() for _ in range(len(raw_json))]
 
         # Deserialise and add the elements of the list
         for key, value in zip(instance.__key_list, raw_json):
@@ -102,7 +96,7 @@ class ArrayProxy(JSONValidatorClass, JSONBiserialisable['ArrayProxy'], Generic[E
             raise ValueError(f"Attempted to add non-unique element")
 
         # Create a new key reference
-        key = ArrayProxyKey()
+        key = DummyInstance()
 
         # Add the value to the sub-property
         self.sub_property().__set__(key, value)
@@ -145,7 +139,7 @@ class ArrayProxy(JSONValidatorClass, JSONBiserialisable['ArrayProxy'], Generic[E
             raise ValueError(f"Attempted to insert non-unique element")
 
         # Create a new key reference
-        key = ArrayProxyKey()
+        key = DummyInstance()
 
         # Add the value to the sub-property
         self.sub_property().__set__(key, value)
