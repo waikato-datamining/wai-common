@@ -41,3 +41,8 @@ Changelog
 - Added JSON package, with tools for working with JSON and JSONSchema. Also specifies the
   configuration class, which allows for easy manipulation of JSON files in an object-oriented
   manner.
+
+0.0.5 (????-??-??)
+-------------------
+
+- Added interfaces for serialising/deserialising JSON using custom representations.
