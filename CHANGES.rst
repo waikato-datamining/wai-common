@@ -46,3 +46,6 @@ Changelog
 -------------------
 
 - Added interfaces for serialising/deserialising JSON using custom representations.
+- Added exception package to meta package for processing exceptions. Currently only
+  contains ExceptionChainer, which captures exceptions as a context-manager and then
+  provides methods for processing them.
