@@ -1,12 +1,11 @@
 from typing import Optional
 
 from ...schema import number
-from .._OptionallyPresent import OptionallyPresent
 from ..._typing import RawJSONNumber
-from ._Property import Property
+from ._RawProperty import RawProperty
 
 
-class NumberProperty(Property[RawJSONNumber]):
+class NumberProperty(RawProperty):
     """
     Property which validates a number.
     """
@@ -32,9 +31,3 @@ class NumberProperty(Property[RawJSONNumber]):
             ),
             optional=optional
         )
-
-    def get_as_raw_json(self, instance) -> OptionallyPresent[RawJSONNumber]:
-        return super().get_as_raw_json(instance)
-
-    def set_from_raw_json(self, instance, value: OptionallyPresent[RawJSONNumber]):
-        super().set_from_raw_json(instance, value)

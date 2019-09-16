@@ -1,35 +1,32 @@
 from abc import ABC
-from typing import Type, TypeVar
+from typing import Type
 
 from ..._typing import RawJSONElement
 from .._OptionallyPresent import OptionallyPresent
 from .._Absent import Absent
-from ...schema import TRIVIALLY_SUCCEED_SCHEMA
-from ...serialise import JSONBiserialisable
+from ...schema import JSONSchema
+from ...serialise import JSONValidatedBiserialisable
 from ._Property import Property
 
-InternalType = TypeVar("InternalType", bound=JSONBiserialisable)
 
-
-class ProxyProperty(Property[InternalType], ABC):
+class ProxyProperty(Property, ABC):
     """
     Property which takes values of a type that is serialisable
     to/from JSON.
     """
     def __init__(self,
                  name: str,
-                 type: Type[InternalType],
+                 type: Type[JSONValidatedBiserialisable],
                  *,
                  optional: bool = False):
         super().__init__(
             name,
-            TRIVIALLY_SUCCEED_SCHEMA,  # Schema is not used for proxy properties
             optional=optional
         )
 
-        self.__type: Type[InternalType] = type
+        self.__type: Type[JSONValidatedBiserialisable] = type
 
-    def type(self) -> Type[InternalType]:
+    def type(self) -> Type[JSONValidatedBiserialisable]:
         """
         Gets the type of this proxy-property.
         """
@@ -40,13 +37,18 @@ class ProxyProperty(Property[InternalType], ABC):
         value = self.__get__(instance, None)
 
         # If not absent, serialise it
-        return value.to_raw_json() if isinstance(value, JSONBiserialisable) else value
+        return value.to_raw_json() if isinstance(value, JSONValidatedBiserialisable) else value
 
     def set_from_raw_json(self, instance, value: OptionallyPresent[RawJSONElement]):
-        # Serialise the value
+        # Deserialise the value
         self.__set__(instance, self.__type.from_raw_json(value) if value is not Absent else Absent)
 
-    def validate_value(self, value: InternalType):
+    def get_json_validation_schema(self) -> JSONSchema:
+        return self.__type.get_json_validation_schema()
+
+    def validate_value(self, value):
+        super().validate_value(value)
+
         # Must be an instance of the correct type
         if not isinstance(value, self.__type):
             raise AttributeError(f"{value} is not an instance of {self.__type.__name__}")

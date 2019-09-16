@@ -1,18 +1,16 @@
-from typing import Type, TypeVar
+from typing import Type
 
 from .property import ProxyProperty
 from ._Configuration import Configuration
 
-T = TypeVar("T", bound=Configuration)
 
-
-class SubConfiguration(ProxyProperty[T]):
+class SubConfiguration(ProxyProperty):
     """
     Property which validates a sub-configuration (essentially an object).
     """
     def __init__(self,
                  name: str,
-                 configuration_type: Type[T],
+                 configuration_type: Type[Configuration],
                  *,
                  optional: bool = False):
         super().__init__(

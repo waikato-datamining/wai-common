@@ -1,16 +1,13 @@
-from typing import TypeVar, Generic
+from abc import abstractmethod, ABC
 from weakref import WeakKeyDictionary
 
 from .._OptionallyPresent import OptionallyPresent
 from .._Absent import Absent
 from ..._typing import RawJSONElement
 from ...validator import JSONValidatorInstance
-from ...schema import JSONSchema
-
-InternalType = TypeVar("InternalType")
 
 
-class Property(JSONValidatorInstance, Generic[InternalType]):
+class Property(JSONValidatorInstance, ABC):
     """
     A property of a configuration is an instance value in the configuration
     object's keys. The value of a property is a raw JSON element, or something
@@ -20,11 +17,9 @@ class Property(JSONValidatorInstance, Generic[InternalType]):
     """
     def __init__(self,
                  name: str,
-                 schema: JSONSchema,
                  *,
                  optional: bool = False):
         self.__name: str = name
-        self.__schema: JSONSchema = schema
         self.__optional: bool = optional
 
         # The instance values of this property
@@ -44,7 +39,7 @@ class Property(JSONValidatorInstance, Generic[InternalType]):
         """
         return self.__optional
 
-    def __get__(self, instance, owner) -> OptionallyPresent[InternalType]:
+    def __get__(self, instance, owner):
         # If accessed from the class, return the property itself
         if instance is None:
             return self
@@ -56,17 +51,17 @@ class Property(JSONValidatorInstance, Generic[InternalType]):
         # Get the value for this property
         return self.__values[instance]
 
-    def __set__(self, instance, value: OptionallyPresent[InternalType]):
+    def __set__(self, instance, value):
         # Must be accessed via an instance
         self._require_instance(instance)
 
         # Validate the value
-        if value is not Absent:
-            self.validate_value(value)
+        self.validate_value(value)
 
         # Set the value in the instance dictionary
         self.__values[instance] = value
 
+    @abstractmethod
     def get_as_raw_json(self, instance) -> OptionallyPresent[RawJSONElement]:
         """
         Gets the value of this property as raw JSON.
@@ -74,8 +69,9 @@ class Property(JSONValidatorInstance, Generic[InternalType]):
         :param instance:    The instance to get the value for.
         :return:            The raw JSON, or Absent.
         """
-        return self.__get__(instance, None)
+        pass
 
+    @abstractmethod
     def set_from_raw_json(self, instance, value: OptionallyPresent[RawJSONElement]):
         """
         Sets the value of this property from raw JSON.
@@ -83,7 +79,7 @@ class Property(JSONValidatorInstance, Generic[InternalType]):
         :param instance:    The instance to set the value for.
         :param value:       The raw JSON value.
         """
-        self.__set__(instance, value)
+        pass
 
     def __delete__(self, instance):
         raise AttributeError("Cannot delete configuration properties")
@@ -97,11 +93,8 @@ class Property(JSONValidatorInstance, Generic[InternalType]):
         if self.__name == "":
             self.__name = name
 
-    def get_json_validation_schema(self) -> JSONSchema:
-        return self.__schema
-
-    @classmethod
-    def _require_instance(cls, instance):
+    @staticmethod
+    def _require_instance(instance):
         """
         Raises an exception if instance is None.
 
@@ -111,7 +104,7 @@ class Property(JSONValidatorInstance, Generic[InternalType]):
         if instance is None:
             raise AttributeError("Cannot access property through class (requires instance)")
 
-    def validate_value(self, value: InternalType):
+    def validate_value(self, value):
         """
         Performs property value validation. Raises an AttributeError if validation fails.
 
@@ -120,9 +113,3 @@ class Property(JSONValidatorInstance, Generic[InternalType]):
         # Check for an absent value if allowed
         if not self.__optional and value is Absent:
             raise AttributeError("Cannot set non-optional property as absent")
-
-        # Validate the value
-        try:
-            self.validate_raw_json(value)
-        except Exception as e:
-            raise AttributeError(f"{value} failed JSON validation") from e

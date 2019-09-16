@@ -1,27 +1,24 @@
-from typing import Optional, Type, Union, List, TypeVar, Generic
+from typing import Optional
 
-from .._OptionallyPresent import OptionallyPresent
 from ._Property import Property
 from ._ProxyProperty import ProxyProperty
 from ._ArrayProxy import ArrayProxy
 
-ElementType = TypeVar("ElementType")
 
-
-class ArrayProperty(ProxyProperty[ArrayProxy], Generic[ElementType]):
+class ArrayProperty(ProxyProperty):
     """
     Property which validates a regular array of elements.
     """
     def __init__(self,
-                 sub_property: Property[ElementType],
+                 sub_property: Property,
                  min_elements: int = 0,
                  max_elements: Optional[int] = None,
                  unique_elements: bool = False):
 
         # Create a closure class to proxy the array
-        class ClosureArrayProxy(ArrayProxy[ElementType]):
+        class ClosureArrayProxy(ArrayProxy):
             @classmethod
-            def sub_property(cls) -> Property[ElementType]:
+            def sub_property(cls) -> Property:
                 return sub_property
 
             @classmethod
@@ -42,11 +39,10 @@ class ArrayProperty(ProxyProperty[ArrayProxy], Generic[ElementType]):
             optional=sub_property.is_optional()
         )
 
-        self.__proxy: Type[ArrayProxy[ElementType]] = ClosureArrayProxy
-
-    def __set__(self, instance, value: OptionallyPresent[Union[ArrayProxy[ElementType], List[ElementType]]]):
-        # Convert raw lists to proxies
-        if isinstance(value, list):
-            value = self.__proxy(value)
+    def __set__(self, instance, value):
+        # Convert other proxy-arrays and raw lists to our proxy-type
+        if (isinstance(value, ArrayProxy) and not isinstance(value, self.type())) or \
+           isinstance(value, list):
+            value = self.type()(value)
 
         super().__set__(instance, value)

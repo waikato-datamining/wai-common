@@ -1,11 +1,10 @@
 from typing import Optional
 
 from ...schema import string_schema
-from .._OptionallyPresent import OptionallyPresent
-from ._Property import Property
+from ._RawProperty import RawProperty
 
 
-class StringProperty(Property[str]):
+class StringProperty(RawProperty):
     """
     Configuration property which validates a string.
     """
@@ -27,9 +26,3 @@ class StringProperty(Property[str]):
             ),
             optional=optional
         )
-
-    def get_as_raw_json(self, instance) -> OptionallyPresent[str]:
-        return super().get_as_raw_json(instance)
-
-    def set_from_raw_json(self, instance, value: OptionallyPresent[str]):
-        super().set_from_raw_json(instance, value)

@@ -1,10 +1,9 @@
-from .._OptionallyPresent import OptionallyPresent
 from ..._typing import RawJSONPrimitive
 from ...schema import enum
-from ._Property import Property
+from ._RawProperty import RawProperty
 
 
-class EnumProperty(Property[RawJSONPrimitive]):
+class EnumProperty(RawProperty):
     """
     Property which accepts one of a set of specific primitive values.
     """
@@ -17,9 +16,3 @@ class EnumProperty(Property[RawJSONPrimitive]):
             enum(*values),
             optional=optional
         )
-
-    def get_as_raw_json(self, instance) -> OptionallyPresent[RawJSONPrimitive]:
-        return super().get_as_raw_json(instance)
-
-    def set_from_raw_json(self, instance, value: OptionallyPresent[RawJSONPrimitive]):
-        super().set_from_raw_json(instance, value)

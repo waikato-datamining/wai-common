@@ -6,13 +6,12 @@ from ._Absent import Absent
 from ..schema import JSONSchema, standard_object
 from .property import Property
 from .._typing import RawJSONObject
-from ..serialise import JSONBiserialisable
-from ..validator import JSONValidatorClass
+from ..serialise import JSONValidatedBiserialisable
 
 T = TypeVar("T", bound="Configuration")
 
 
-class Configuration(JSONValidatorClass, JSONBiserialisable[T], ABC):
+class Configuration(JSONValidatedBiserialisable[T], ABC):
     """
     Base class for Python representations of JSON-format configuration files.
     All configurations are validated against a schema for format correctness.

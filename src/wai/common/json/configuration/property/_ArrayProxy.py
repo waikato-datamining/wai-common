@@ -1,21 +1,18 @@
-from abc import abstractmethod
-from typing import Iterable, Optional, List, Callable, Generic, TypeVar, Any, Iterator
+from abc import abstractmethod, ABC
+from typing import Iterable, Optional, List, Callable, Any, Iterator
 
 from ..._typing import RawJSONElement
-from ...validator import JSONValidatorClass
-from ...serialise import JSONBiserialisable, JSONSerialisable
+from ...serialise import JSONValidatedBiserialisable, JSONSerialisable
 from ...schema import JSONSchema, regular_array
 from ._Property import Property
 from ._DummyInstance import DummyInstance
 
-ElementType = TypeVar("ElementType")
 
-
-class ArrayProxy(JSONValidatorClass, JSONBiserialisable['ArrayProxy'], Generic[ElementType]):
+class ArrayProxy(JSONValidatedBiserialisable['ArrayProxy'], ABC):
     """
     Class which acts like an array, but validates its elements using a property.
     """
-    def __init__(self, initial_values: Optional[List[ElementType]] = None):
+    def __init__(self, initial_values: Optional[Iterable] = None):
         # The references to the list elements in the sub-property
         self.__key_list: List[DummyInstance] = []
 
@@ -25,7 +22,7 @@ class ArrayProxy(JSONValidatorClass, JSONBiserialisable['ArrayProxy'], Generic[E
 
     @classmethod
     @abstractmethod
-    def sub_property(cls) -> Property[ElementType]:
+    def sub_property(cls) -> Property:
         """
         Gets the property which is used to validate elements of the array.
         """
@@ -60,7 +57,7 @@ class ArrayProxy(JSONValidatorClass, JSONBiserialisable['ArrayProxy'], Generic[E
         return [self.sub_property().get_as_raw_json(key) for key in self.__key_list]
 
     @classmethod
-    def from_raw_json(cls, raw_json: RawJSONElement) -> 'ArrayProxy[ElementType]':
+    def from_raw_json(cls, raw_json: RawJSONElement) -> 'ArrayProxy':
         # Create the instance
         instance = cls()
 
@@ -86,7 +83,7 @@ class ArrayProxy(JSONValidatorClass, JSONBiserialisable['ArrayProxy'], Generic[E
     # LIST METHODS #
     # ------------ #
 
-    def append(self, value: ElementType):
+    def append(self, value):
         # Make sure we're not already at max length
         if len(self.__key_list) == self.max_elements():
             raise ValueError(f"Tried to append to list already of maximum size ({self.max_elements()})")
@@ -121,7 +118,7 @@ class ArrayProxy(JSONValidatorClass, JSONBiserialisable['ArrayProxy'], Generic[E
         # TODO
         raise NotImplementedError(ArrayProxy.count.__qualname__)
 
-    def extend(self, iterable: Iterable[ElementType]):
+    def extend(self, iterable: Iterable):
         for value in iterable:
             self.append(value)
 
@@ -129,7 +126,7 @@ class ArrayProxy(JSONValidatorClass, JSONBiserialisable['ArrayProxy'], Generic[E
         # TODO
         raise NotImplementedError(ArrayProxy.index.__qualname__)
 
-    def insert(self, index: int, value: ElementType):
+    def insert(self, index: int, value):
         # Make sure we're not already at max length
         if len(self.__key_list) == self.max_elements():
             raise ValueError(f"Tried to insert into list already of maximum size ({self.max_elements()})")
@@ -147,7 +144,7 @@ class ArrayProxy(JSONValidatorClass, JSONBiserialisable['ArrayProxy'], Generic[E
         # Insert the key into the key-list
         self.__key_list.insert(index, key)
 
-    def pop(self, index: int = -1) -> ElementType:
+    def pop(self, index: int = -1):
         # Make sure we're not already at min length
         if len(self.__key_list) == self.min_elements():
             raise ValueError(f"Tried to pop from list already of minimum size ({self.min_elements()})")
@@ -165,14 +162,14 @@ class ArrayProxy(JSONValidatorClass, JSONBiserialisable['ArrayProxy'], Generic[E
         self.__key_list.reverse()
 
     def sort(self, *,
-             key: Optional[Callable[[ElementType], Any]] = lambda k: k,
+             key: Optional[Callable[[Any], Any]] = lambda k: k,
              reverse: bool = False):
         self.__key_list.sort(key=lambda k: key(self.sub_property().__get__(k, None)), reverse=reverse)
 
-    def __add__(self, x: List[ElementType]) -> List[ElementType]:
+    def __add__(self, x: List) -> List:
         return self[:] + x
 
-    def __contains__(self, value: ElementType) -> bool:
+    def __contains__(self, value) -> bool:
         return any(self.__values_equal(value, self.sub_property().__get__(key, None)) for key in self.__key_list)
 
     def __delitem__(self, *args, **kwargs):
@@ -183,7 +180,7 @@ class ArrayProxy(JSONValidatorClass, JSONBiserialisable['ArrayProxy'], Generic[E
         # TODO
         raise NotImplementedError(ArrayProxy.__eq__.__qualname__)
 
-    def __getitem__(self, y) -> ElementType:
+    def __getitem__(self, y):
         if isinstance(y, slice):
             return [self[i] for i in range(*y.indices(len(self)))]
         else:
@@ -197,7 +194,7 @@ class ArrayProxy(JSONValidatorClass, JSONBiserialisable['ArrayProxy'], Generic[E
         # TODO
         raise NotImplementedError(ArrayProxy.__gt__.__qualname__)
 
-    def __iadd__(self, x: Iterable[ElementType]):
+    def __iadd__(self, x: Iterable):
         for value in x:
             self.append(value)
 
@@ -205,7 +202,7 @@ class ArrayProxy(JSONValidatorClass, JSONBiserialisable['ArrayProxy'], Generic[E
         # TODO
         raise NotImplementedError(ArrayProxy.__imul__.__qualname__)
 
-    def __iter__(self) -> Iterator[ElementType]:
+    def __iter__(self) -> Iterator:
         return (self.sub_property().__get__(key, None) for key in self.__key_list)
 
     def __len__(self) -> int:
@@ -238,7 +235,7 @@ class ArrayProxy(JSONValidatorClass, JSONBiserialisable['ArrayProxy'], Generic[E
         # TODO
         raise NotImplementedError(ArrayProxy.__rmul__.__qualname__)
 
-    def __setitem__(self, index: int, value: ElementType):
+    def __setitem__(self, index: int, value):
         # Make sure the unique-elements constraint isn't violated
         if self.unique_elements() and value in self and not self.__values_equal(self[index], value):
             raise ValueError(f"Attempted to set element to non-unique element")
@@ -249,7 +246,7 @@ class ArrayProxy(JSONValidatorClass, JSONBiserialisable['ArrayProxy'], Generic[E
         self.sub_property().__set__(key, value)
 
     @staticmethod
-    def __values_equal(v1: ElementType, v2: ElementType) -> bool:
+    def __values_equal(v1, v2) -> bool:
         """
         Checks if two values are equivalent in JSON.
 

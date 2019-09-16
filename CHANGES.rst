@@ -50,3 +50,5 @@ Changelog
   contains ExceptionChainer, which captures exceptions as a context-manager and then
   provides methods for processing them.
 - Added utility interface JSONValidatedBiserialisable.
+- Refactored configurations and properties to be more understandable.
+- Added AnyOfProperty.
