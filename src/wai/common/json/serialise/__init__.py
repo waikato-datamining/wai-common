@@ -7,3 +7,4 @@ from ._JSONDecodable import JSONDecodable
 from ._JSONDeserialisable import JSONDeserialisable
 from ._JSONEncodable import JSONEncodable
 from ._JSONSerialisable import JSONSerialisable
+from ._JSONValidatedBiserialisable import JSONValidatedBiserialisable
