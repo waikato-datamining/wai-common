@@ -42,7 +42,7 @@ Changelog
   configuration class, which allows for easy manipulation of JSON files in an object-oriented
   manner.
 
-0.0.5 (????-??-??)
+0.0.5 (2019-09-17)
 -------------------
 
 - Added interfaces for serialising/deserialising JSON using custom representations.
