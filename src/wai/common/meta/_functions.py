@@ -34,7 +34,7 @@ def has_been_overridden(function, obj) -> bool:
         raise ValueError("Given object does not inherit from function base-class")
 
     # Get the function of the same name from the object base class
-    object_base_class_function = getattr(object_base_class, function.__name__)
+    object_base_class_function = unbind(getattr(object_base_class, function.__name__))
 
     return object_base_class_function is not function
 
