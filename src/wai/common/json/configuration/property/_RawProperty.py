@@ -1,3 +1,4 @@
+from .._Absent import Absent
 from ...schema import JSONSchema
 from ..._typing import RawJSONElement
 from .._OptionallyPresent import OptionallyPresent
@@ -29,6 +30,11 @@ class RawProperty(Property):
     def validate_value(self, value: RawJSONElement):
         super().validate_value(value)
 
+        # No need to continue validation if value is absent
+        if value is Absent:
+            return
+
+        # Validate the raw JSON with our schema
         try:
             self.validate_raw_json(value)
         except Exception as e:

@@ -49,6 +49,10 @@ class ProxyProperty(Property, ABC):
     def validate_value(self, value):
         super().validate_value(value)
 
+        # No need to continue validation if value is absent
+        if value is Absent:
+            return
+
         # Must be an instance of the correct type
         if not isinstance(value, self.__type):
             raise AttributeError(f"{value} is not an instance of {self.__type.__name__}")

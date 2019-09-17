@@ -157,6 +157,10 @@ class OfProperty(Property):
     def validate_value(self, value):
         super().validate_value(value)
 
+        # No need to continue validation if value is absent
+        if value is Absent:
+            return
+
         # Our values are indices into the sub-properties
         if not isinstance(value, int) or not (0 <= value < len(self._sub_properties)):
             raise AttributeError(f"Error in internal index for Of property. "
