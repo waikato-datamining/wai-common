@@ -112,4 +112,4 @@ class Property(JSONValidatorInstance, ABC):
         """
         # Check for an absent value if allowed
         if not self.__optional and value is Absent:
-            raise AttributeError("Cannot set non-optional property as absent")
+            raise AttributeError(f"Cannot set non-optional property {self.name} as absent")
