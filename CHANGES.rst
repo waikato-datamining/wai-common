@@ -52,3 +52,9 @@ Changelog
 - Added utility interface JSONValidatedBiserialisable.
 - Refactored configurations and properties to be more understandable.
 - Added AnyOfProperty.
+
+0.0.6 (2019-09-17)
+-------------------
+
+- Fixed bug where Absent was being validated after Property.validate_value had checked
+  it, and therefore failing.
