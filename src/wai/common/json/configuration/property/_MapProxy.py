@@ -156,9 +156,8 @@ class MapProxy(JSONValidatedBiserialisable['ArrayProxy'], ABC):
         # TODO
         raise NotImplementedError(MapProxy.__ne__.__qualname__)
 
-    def __repr__(self, *args, **kwargs):
-        # TODO
-        raise NotImplementedError(MapProxy.__repr__.__qualname__)
+    def __repr__(self):
+        return str(dict(self.items()))
 
     def __setitem__(self, key: str, value):
         # Create a dummy reference
@@ -169,3 +168,6 @@ class MapProxy(JSONValidatedBiserialisable['ArrayProxy'], ABC):
 
         # Put the reference in the key-map
         self.__key_map[key] = instance
+
+    def __str__(self):
+        return self.to_json_string()

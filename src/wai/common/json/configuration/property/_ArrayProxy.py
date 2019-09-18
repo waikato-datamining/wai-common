@@ -224,9 +224,8 @@ class ArrayProxy(JSONValidatedBiserialisable['ArrayProxy'], ABC):
         # TODO
         raise NotImplementedError(ArrayProxy.__ne__.__qualname__)
 
-    def __repr__(self, *args, **kwargs):
-        # TODO
-        raise NotImplementedError(ArrayProxy.__repr__.__qualname__)
+    def __repr__(self):
+        return str(element for element in self)
 
     def __reversed__(self):
         return (self.sub_property().__get__(key, None) for key in reversed(self.__key_list))
@@ -244,6 +243,9 @@ class ArrayProxy(JSONValidatedBiserialisable['ArrayProxy'], ABC):
         key = self.__key_list[index]
 
         self.sub_property().__set__(key, value)
+
+    def __str__(self):
+        return self.to_json_string()
 
     @staticmethod
     def __values_equal(v1, v2) -> bool:
