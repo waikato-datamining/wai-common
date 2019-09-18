@@ -63,3 +63,8 @@ Changelog
 -------------------
 
 - Added meta package for typing functionality.
+
+0.0.8 (????-??-??)
+-------------------
+
+- Fixed bug in get_argument_to_typevar.
