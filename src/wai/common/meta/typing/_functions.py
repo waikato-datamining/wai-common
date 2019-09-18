@@ -31,15 +31,22 @@ def get_argument_to_typevar(cls: Type, generic_base_class: Type, typevar: TypeVa
     # Get the decendency path from derived to base class
     bases = [cls]
     while bases[-1] is not generic_base_class:
+        # Keep track of if we found a base
+        base_found = False
+
+        # Try and find a generic base
         for base in typing_inspect.get_generic_bases(bases[-1]):
             if issubclass(base, generic_base_class):
                 bases.append(base)
+                base_found = True
                 break
 
-        for base in bases[-1].__bases__:
-            if issubclass(base, generic_base_class):
-                bases.append(base)
-                break
+        # If we didn't find a generic base, find a non-generic base
+        if not base_found:
+            for base in bases[-1].__bases__:
+                if issubclass(base, generic_base_class):
+                    bases.append(base)
+                    break
 
     # Get the index of the parameter
     typevar_index = parameters.index(typevar)
