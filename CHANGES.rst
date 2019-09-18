@@ -68,3 +68,5 @@ Changelog
 -------------------
 
 - Fixed bug in get_argument_to_typevar.
+- Added new property type for configurations, MapProperty, which behaves like a dict from
+  strings to some sub-property type.
