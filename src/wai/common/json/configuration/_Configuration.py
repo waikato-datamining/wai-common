@@ -1,9 +1,10 @@
 from abc import ABC
-from typing import Dict, TypeVar, List, Any
+from typing import Dict, TypeVar, List, Any, Union, Tuple
 
-from .._deep_copy import deep_copy
+from wai.common.json.configuration.property import RawProperty
+from .property._MapProxy import MapProxy
 from ._Absent import Absent
-from ..schema import JSONSchema, standard_object
+from ..schema import JSONSchema, standard_object, TRIVIALLY_SUCCEED_SCHEMA
 from .property import Property
 from .._typing import RawJSONObject
 from ..serialise import JSONValidatedBiserialisable
@@ -19,19 +20,73 @@ class Configuration(JSONValidatedBiserialisable[T], ABC):
     configurations.
     """
     def __init__(self, **initial_values):
-        # Storage for any additional properties found in the JSON
-        self._additional_properties = {}
+        # Get the properties
+        properties = self.get_all_properties()
 
-        # Get the properties, prioritising attribute names
-        properties = self.get_all_properties(True)
-        properties.update(self.get_all_properties(False))
+        # Make sure no properties are set twice
+        for attribute_name, property in properties.items():
+            if attribute_name in initial_values and \
+                    property.name() in initial_values and \
+                    property.name() not in properties:
+                raise ValueError(f"Value for property {property.name()} (attribute "
+                                 f"name '{attribute_name}') specified twice")
 
-        # Set the properties
-        for name, initial_value in initial_values.items():
-            if name not in properties:
-                raise ValueError(f"{self.__class__.__name__} has no property '{name}'")
+        # Set the properties with initial values, favouring attribute names
+        for attribute_name, property in properties.items():
+            # Get the initial value for the property (absent if not specified)
+            initial_value = initial_values.pop(attribute_name
+                                               if attribute_name in initial_values
+                                               else property.name(),
+                                               Absent)
 
-            properties[name].__set__(self, initial_value)
+            # Attempt to set the value
+            try:
+                # Set explicitly first
+                property.__set__(self, initial_value)
+            except Exception as e:
+                try:
+                    # If that fails, set by JSON
+                    property.set_from_raw_json(self, initial_value)
+                except Exception as e2:
+                    # If that fails as well, let the exception escape
+                    raise e2 from e
+
+        # Treat remaining initial values as additional properties
+        self._additional_properties = self.init_additional_properties(**initial_values)
+
+    @classmethod
+    def init_additional_properties(cls, **initial_values):
+        """
+        Initialises the additional-properties storage for this configuration.
+
+        :param initial_values:  The initial values that weren't explicit properties.
+        """
+        # Create the closure of the sub-property
+        sub_property: Property = cls._additional_properties_sub_property[0]
+
+        # Create a map closure class to act as the storage
+        class AdditionalPropertiesProxy(MapProxy):
+            @classmethod
+            def sub_property(cls) -> Property:
+                return sub_property
+
+        # Create the storage
+        return AdditionalPropertiesProxy(**initial_values)
+
+    def __getattr__(self, item: str):
+        # Return the value of the additional property if present
+        if item in self._additional_properties:
+            return self._additional_properties[item]
+
+        raise AttributeError(f"'{self.__class__.__name__}' has no attribute '{item}'")
+
+    def __setattr__(self, key: str, value):
+        # Set any unknown attribute in the additional values
+        if key != "_additional_properties":
+            if not hasattr(self, key) or key in self._additional_properties:
+                self._additional_properties[key] = value
+
+        super().__setattr__(key, value)
 
     def to_raw_json(self) -> RawJSONObject:
         # Get a list of all properties
@@ -57,25 +112,7 @@ class Configuration(JSONValidatedBiserialisable[T], ABC):
 
     @classmethod
     def from_raw_json(cls, raw_json: RawJSONObject) -> T:
-        # Create the instance
-        instance = cls()
-
-        # Initialise the additional properties to all of the JSON
-        instance._additional_properties = deep_copy(raw_json)
-
-        # Get the properties of this configuration type
-        properties: Dict[str, Property] = cls.get_all_properties(True)
-
-        # Set the value of each property to the JSON value,
-        # and remove it from the additional properties
-        for name, property in properties.items():
-            if name in raw_json:
-                property.set_from_raw_json(instance, raw_json[name])
-                instance._additional_properties.pop(name)
-            else:
-                property.set_from_raw_json(instance, Absent)
-
-        return instance
+        return cls(**raw_json)
 
     @classmethod
     def get_json_validation_schema(cls) -> JSONSchema:
@@ -96,7 +133,12 @@ class Configuration(JSONValidatedBiserialisable[T], ABC):
             if property.is_optional()
         }
 
-        return standard_object(required_properties, optional_properties, additional_properties=True)
+        # Extract the additional properties schema
+        additional_properties: JSONSchema = cls._additional_properties_sub_property[0].get_json_validation_schema()
+
+        return standard_object(required_properties,
+                               optional_properties,
+                               additional_properties=additional_properties)
 
     @classmethod
     def get_all_properties(cls, with_property_names: bool = False) -> Dict[str, Property]:
@@ -128,8 +170,26 @@ class Configuration(JSONValidatedBiserialisable[T], ABC):
 
         return properties
 
+    @classmethod
+    def additional_properties_validation(cls) -> Union[JSONSchema, Property]:
+        """
+        Gets the schema/property to validate any additional properties set
+        on this configuration. By default all additional properties are allowed.
+        Override to modify this behaviour.
+        """
+        return TRIVIALLY_SUCCEED_SCHEMA
+
     def __init_subclass__(cls, **kwargs):
+        # Perform any super initialisation
+        super().__init_subclass__(**kwargs)
+
         # Make sure the property names are unique
         property_names = [property.name() for property in cls.get_all_properties().values()]
         if len(property_names) != len(set(property_names)):
             raise TypeError(f"Duplicate property names in {cls.__name__}: {', '.join(property_names)}")
+
+        # Initialise the additional properties validation property
+        property = cls.additional_properties_validation()
+        if not isinstance(property, Property):
+            property = RawProperty("", property)
+        cls._additional_properties_sub_property: Tuple[Property] = (property,)  # Wrapped in a tuple to avoid discovery
