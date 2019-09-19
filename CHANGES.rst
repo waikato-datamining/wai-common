@@ -72,3 +72,8 @@ Changelog
   strings to some sub-property type.
 - Configurations now support: validation of additional properties, initialisation by value
   or JSON, programmatically getting/setting additional properties.
+
+0.0.9 (????-??-??)
+-------------------
+
+- Added StrictConfiguration, which disables additional properties by default.
