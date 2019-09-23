@@ -274,7 +274,8 @@ class ARFFFile:
         :return:            The data.
         """
         # Extract the selected columns from the data
-        return [extract_by_index(row, self.selection_indices(selection)) for row in self._data]
+        selection = self.selection_indices(selection)
+        return [extract_by_index(row, selection) for row in self._data]
 
     def extract_all_data(self) -> DATA_TYPE:
         """
