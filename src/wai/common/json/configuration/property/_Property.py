@@ -46,7 +46,7 @@ class Property(JSONValidatorInstance, ABC):
 
         # Make sure a value has been set for this property
         if instance not in self.__values:
-            raise AttributeError(f"{instance} has no value for property '{self.name()}'")
+            raise AttributeError(f"{instance.__class__.__name__} has no value for property '{self.name()}'")
 
         # Get the value for this property
         return self.__values[instance]
