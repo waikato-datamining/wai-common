@@ -73,7 +73,8 @@ Changelog
 - Configurations now support: validation of additional properties, initialisation by value
   or JSON, programmatically getting/setting additional properties.
 
-0.0.9 (????-??-??)
+0.0.9 (2019-10-04)
 -------------------
 
 - Added StrictConfiguration, which disables additional properties by default.
+- Minor fixes.
