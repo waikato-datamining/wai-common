@@ -1,10 +1,13 @@
+import functools
 from abc import ABC
 from typing import Dict, TypeVar, List, Any, Union, Tuple
 
 from wai.common.json.configuration.property import RawProperty
 from .property._MapProxy import MapProxy
 from ._Absent import Absent
-from ..schema import JSONSchema, standard_object, TRIVIALLY_SUCCEED_SCHEMA
+from ..schema import JSONSchema, JSONDefinitions, standard_object, IS_JSON_SCHEMA, IS_JSON_DEFINITION, \
+    consolidate_definitions
+from ..schema.constants import DEFINITIONS_KEYWORD
 from .property import Property
 from .._typing import RawJSONObject
 from ..serialise import JSONValidatedBiserialisable
@@ -120,25 +123,38 @@ class Configuration(JSONValidatedBiserialisable[T], ABC):
         properties: Dict[str, Property] = cls.get_all_properties(True)
 
         # Extract the required property schemas
-        required_properties: Dict[str, JSONSchema] = {
-            name: property.get_json_validation_schema()
+        required_properties_schema: Dict[str, JSONSchema] = {
+            name: property.clone_json_validation_schema()
             for name, property in properties.items()
             if not property.is_optional()
         }
 
         # Extract the optional property schemas
-        optional_properties: Dict[str, JSONSchema] = {
-            name: property.get_json_validation_schema()
+        optional_properties_schema: Dict[str, JSONSchema] = {
+            name: property.clone_json_validation_schema()
             for name, property in properties.items()
             if property.is_optional()
         }
 
         # Extract the additional properties schema
-        additional_properties: JSONSchema = cls._additional_properties_sub_property[0].get_json_validation_schema()
+        additional_properties_schema: JSONSchema = cls._additional_properties_sub_property[0]\
+            .clone_json_validation_schema()
 
-        return standard_object(required_properties,
-                               optional_properties,
-                               additional_properties=additional_properties)
+        # Extract the definitions
+        definitions: JSONDefinitions = consolidate_definitions(*required_properties_schema.values(),
+                                                               *optional_properties_schema.values(),
+                                                               additional_properties_schema,
+                                                               pop=True)
+
+        # Create the over-all schema
+        schema: JSONSchema = standard_object(required_properties_schema,
+                                             optional_properties_schema,
+                                             additional_properties=additional_properties_schema)
+
+        # Add the definitions back in
+        schema[DEFINITIONS_KEYWORD] = definitions
+
+        return schema
 
     @classmethod
     def get_all_properties(cls, with_property_names: bool = False) -> Dict[str, Property]:
@@ -177,7 +193,9 @@ class Configuration(JSONValidatedBiserialisable[T], ABC):
         on this configuration. By default all additional properties are allowed.
         Override to modify this behaviour.
         """
-        return TRIVIALLY_SUCCEED_SCHEMA
+        schema: JSONSchema = {DEFINITIONS_KEYWORD: IS_JSON_DEFINITION}
+        schema.update(IS_JSON_SCHEMA)
+        return schema
 
     def __init_subclass__(cls, **kwargs):
         # Perform any super initialisation
@@ -193,3 +211,10 @@ class Configuration(JSONValidatedBiserialisable[T], ABC):
         if not isinstance(property, Property):
             property = RawProperty("", property)
         cls._additional_properties_sub_property: Tuple[Property] = (property,)  # Wrapped in a tuple to avoid discovery
+
+        # Cache the schema
+        schema = cls.get_json_validation_schema()
+        @functools.wraps(cls.clone_json_validation_schema)
+        def cached() -> JSONSchema:
+            return schema
+        cls.get_json_validation_schema = cached
