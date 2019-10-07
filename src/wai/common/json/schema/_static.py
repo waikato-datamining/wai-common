@@ -7,6 +7,9 @@ from .constants import *
 TRIVIALLY_SUCCEED_SCHEMA = True
 TRIVIALLY_FAIL_SCHEMA = False
 
+# The schema for validating only the value null
+NULL_SCHEMA = {TYPE_KEYWORD: NULL_TYPE}
+
 # The schema for validating boolean values
 BOOL_SCHEMA = {TYPE_KEYWORD: BOOL_TYPE}
 
