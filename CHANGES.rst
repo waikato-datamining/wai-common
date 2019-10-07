@@ -78,3 +78,9 @@ Changelog
 
 - Added StrictConfiguration, which disables additional properties by default.
 - Minor fixes.
+
+0.0.10 (????-??-??)
+-------------------
+
+- JSON schema package now has tools for working with references/definitions.
+- Configurations now validate additional properties as JSON by default.
