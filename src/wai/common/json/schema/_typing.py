@@ -1,7 +1,7 @@
 """
 Module for static and dynamic typing of JSON schema.
 """
-from typing import Union
+from typing import Union, Dict
 
 import jsonschema
 
@@ -10,6 +10,9 @@ from .._typing import RawJSONObject
 
 # The type of a schema (boolean schema are trivial)
 JSONSchema = Union[RawJSONObject, bool]
+
+# The type of a definition
+JSONDefinitions = Dict[str, JSONSchema]
 
 
 def is_schema(schema):
