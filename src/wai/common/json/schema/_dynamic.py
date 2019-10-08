@@ -8,6 +8,8 @@ from ._error import JSONSchemaError
 from ._typing import JSONSchema
 from .._typing import RawJSONNumber, RawJSONPrimitive
 from .constants import *
+from ._definitions import consolidate_definitions, JSONDefinitions
+from .._deep_copy import deep_copy
 
 
 def string_schema(min_length: Optional[int] = None,
@@ -78,6 +80,17 @@ def standard_object(required_properties: Optional[Dict[str, JSONSchema]] = None,
         if key in optional_properties:
             raise JSONSchemaError(f"Property '{key}' can't be both required and optional")
 
+    # Copy all schema
+    required_properties = deep_copy(required_properties)
+    optional_properties = deep_copy(optional_properties)
+    additional_properties = deep_copy(additional_properties)
+
+    # Extract any definitions
+    definitions: JSONDefinitions = consolidate_definitions(*required_properties.values(),
+                                                           *optional_properties.values(),
+                                                           additional_properties,
+                                                           pop=True)
+
     # Combine the required and optional properties
     combined_properties = {}
     combined_properties.update(required_properties)
@@ -86,7 +99,8 @@ def standard_object(required_properties: Optional[Dict[str, JSONSchema]] = None,
     # Create the schema
     schema = {
         TYPE_KEYWORD: OBJECT_TYPE,
-        PROPERTIES_KEYWORD: combined_properties
+        PROPERTIES_KEYWORD: combined_properties,
+        DEFINITIONS_KEYWORD: definitions
     }
 
     # Add the list of required properties if there are any
@@ -180,10 +194,17 @@ def regular_array(element_schema: JSONSchema,
     if max_elements is not None and max_elements < min_elements:
         raise JSONSchemaError("max_elements can't be less than min_elements")
 
+    # Copy the element schema
+    element_schema = deep_copy(element_schema)
+
+    # Extract any definitions
+    definitions: JSONDefinitions = consolidate_definitions(element_schema, pop=True)
+
     # Create the schema with the array type and element schema
     schema: JSONSchema = {
         TYPE_KEYWORD: ARRAY_TYPE,
-        ITEMS_KEYWORD: element_schema
+        ITEMS_KEYWORD: element_schema,
+        DEFINITIONS_KEYWORD: definitions
     }
 
     # Add the minimum length if more than nothing
@@ -213,8 +234,15 @@ def one_of(*schema: JSONSchema) -> JSONSchema:
     if len(schema) < 2:
         raise JSONSchemaError("Can't use one_of with fewer than 2 sub-schema")
 
+    # Copy the schema into a list
+    schema = deep_copy(list(schema))
+
+    # Extract any definitions
+    definitions: JSONDefinitions = consolidate_definitions(*schema, pop=True)
+
     return {
-        ONE_OF_KEYWORD: list(schema)
+        ONE_OF_KEYWORD: schema,
+        DEFINITIONS_KEYWORD: definitions
     }
 
 
@@ -230,6 +258,13 @@ def any_of(*schema: JSONSchema) -> JSONSchema:
     if len(schema) < 2:
         raise JSONSchemaError("Can't use one_of with fewer than 2 sub-schema")
 
+    # Copy the schema into a list
+    schema = deep_copy(list(schema))
+
+    # Extract any definitions
+    definitions: JSONDefinitions = consolidate_definitions(*schema, pop=True)
+
     return {
-        ANY_OF_KEYWORD: list(schema)
+        ANY_OF_KEYWORD: schema,
+        DEFINITIONS_KEYWORD: definitions
     }
