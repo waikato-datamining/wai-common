@@ -89,3 +89,8 @@ Changelog
 -------------------
 
 - Fix so that JSON schema definitions propagate through all composite schema.
+
+0.0.12 (????-??-??)
+-------------------
+
+- Added support for checking Python versions.
