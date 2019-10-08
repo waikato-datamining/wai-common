@@ -1,5 +1,5 @@
 from abc import ABC
-from typing import Dict, TypeVar, List, Any, Union, Tuple
+from typing import Dict, TypeVar, List, Any, Union, Tuple, Type
 
 from wai.common.json.configuration.property import RawProperty
 from .property._MapProxy import MapProxy
@@ -20,6 +20,9 @@ class Configuration(JSONValidatedBiserialisable[T], ABC):
     The attributes of a configuration should be either JSON types or nested
     configurations.
     """
+    # Cache of sub-class schema
+    __schema_cache: Dict[Type["Configuration"], JSONSchema] = {}
+
     def __init__(self, **initial_values):
         # Get the properties
         properties = self.get_all_properties()
@@ -118,8 +121,8 @@ class Configuration(JSONValidatedBiserialisable[T], ABC):
     @classmethod
     def get_json_validation_schema(cls) -> JSONSchema:
         # Get the cached version if possible
-        if hasattr(cls, "_schema") and cls._schema is not None:
-            return cls._schema
+        if cls in Configuration.__schema_cache:
+            return Configuration.__schema_cache[cls]
 
         # Get the properties of this configuration type
         properties: Dict[str, Property] = cls.get_all_properties(True)
@@ -203,4 +206,4 @@ class Configuration(JSONValidatedBiserialisable[T], ABC):
         cls._additional_properties_sub_property: Tuple[Property] = (property,)  # Wrapped in a tuple to avoid discovery
 
         # Cache the schema
-        cls._schema = cls.get_json_validation_schema()
+        Configuration.__schema_cache[cls] = cls.get_json_validation_schema()

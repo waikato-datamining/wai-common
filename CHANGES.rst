@@ -95,3 +95,8 @@ Changelog
 
 - Added support for checking Python versions.
 - get_argument_to_typevar now works with Python3.6 and Python3.7.
+
+0.0.13 (2019-10-09)
+-------------------
+
+- Fixed bug in Configuration where cached schema were preventing grand-inheritance.
