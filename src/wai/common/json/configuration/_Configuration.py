@@ -119,42 +119,34 @@ class Configuration(JSONValidatedBiserialisable[T], ABC):
 
     @classmethod
     def get_json_validation_schema(cls) -> JSONSchema:
+        # Get the cached version if possible
+        if hasattr(cls, "_schema") and cls._schema is not None:
+            return cls._schema
+
         # Get the properties of this configuration type
         properties: Dict[str, Property] = cls.get_all_properties(True)
 
         # Extract the required property schemas
         required_properties_schema: Dict[str, JSONSchema] = {
-            name: property.clone_json_validation_schema()
+            name: property.get_json_validation_schema()
             for name, property in properties.items()
             if not property.is_optional()
         }
 
         # Extract the optional property schemas
         optional_properties_schema: Dict[str, JSONSchema] = {
-            name: property.clone_json_validation_schema()
+            name: property.get_json_validation_schema()
             for name, property in properties.items()
             if property.is_optional()
         }
 
         # Extract the additional properties schema
         additional_properties_schema: JSONSchema = cls._additional_properties_sub_property[0]\
-            .clone_json_validation_schema()
+            .get_json_validation_schema()
 
-        # Extract the definitions
-        definitions: JSONDefinitions = consolidate_definitions(*required_properties_schema.values(),
-                                                               *optional_properties_schema.values(),
-                                                               additional_properties_schema,
-                                                               pop=True)
-
-        # Create the over-all schema
-        schema: JSONSchema = standard_object(required_properties_schema,
-                                             optional_properties_schema,
-                                             additional_properties=additional_properties_schema)
-
-        # Add the definitions back in
-        schema[DEFINITIONS_KEYWORD] = definitions
-
-        return schema
+        return standard_object(required_properties_schema,
+                               optional_properties_schema,
+                               additional_properties=additional_properties_schema)
 
     @classmethod
     def get_all_properties(cls, with_property_names: bool = False) -> Dict[str, Property]:
@@ -213,8 +205,4 @@ class Configuration(JSONValidatedBiserialisable[T], ABC):
         cls._additional_properties_sub_property: Tuple[Property] = (property,)  # Wrapped in a tuple to avoid discovery
 
         # Cache the schema
-        schema = cls.get_json_validation_schema()
-        @functools.wraps(cls.clone_json_validation_schema)
-        def cached() -> JSONSchema:
-            return schema
-        cls.get_json_validation_schema = cached
+        cls._schema = cls.get_json_validation_schema()
