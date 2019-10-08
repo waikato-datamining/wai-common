@@ -90,7 +90,8 @@ Changelog
 
 - Fix so that JSON schema definitions propagate through all composite schema.
 
-0.0.12 (????-??-??)
+0.0.12 (2019-10-09)
 -------------------
 
 - Added support for checking Python versions.
+- get_argument_to_typevar now works with Python3.6 and Python3.7.
