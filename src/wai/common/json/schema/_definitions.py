@@ -6,22 +6,25 @@ from .constants import *
 from ._static import NULL_SCHEMA, BOOL_SCHEMA, FLOAT_SCHEMA, STRING_SCHEMA
 from ._typing import JSONSchema, JSONDefinitions
 
-# Definition of a schema which validates any JSON
-IS_JSON_REFERENCE: str = "is-json"
-IS_JSON_REFEREND: str = f"#/{DEFINITIONS_KEYWORD}/{IS_JSON_REFERENCE}"
-IS_JSON_SCHEMA: JSONSchema = {REFERENCE_KEYWORD: IS_JSON_REFEREND}
-IS_JSON_DEFINITION: JSONDefinitions = {
-    IS_JSON_REFERENCE: {
-        ANY_OF_KEYWORD: [
-            NULL_SCHEMA,
-            BOOL_SCHEMA,
-            FLOAT_SCHEMA,
-            STRING_SCHEMA,
-            {TYPE_KEYWORD: OBJECT_TYPE, ADDITIONAL_PROPERTIES_KEYWORD: IS_JSON_SCHEMA},
-            {TYPE_KEYWORD: ARRAY_TYPE, ITEMS_KEYWORD: IS_JSON_SCHEMA}
-        ]
-    }
-}
+
+def reference_string(referend: str) -> str:
+    """
+    Creates a JSON pointer reference string to the given referend.
+
+    :param referend:    The referend.
+    :return:            The reference string.
+    """
+    return f"#/{DEFINITIONS_KEYWORD}/{referend}"
+
+
+def reference_schema(referend: str) -> JSONSchema:
+    """
+    Returns a reference schema to the given referend.
+
+    :param referend:    The referend.
+    :return:            The schema.
+    """
+    return {REFERENCE_KEYWORD: reference_string(referend)}
 
 
 def extract_definitions(schema: JSONSchema, pop: bool = False) -> JSONDefinitions:
@@ -69,3 +72,21 @@ def consolidate_definitions(*schemata: JSONSchema, pop: bool = False) -> JSONDef
             consolidated_definitions[definition_name] = definition
 
     return consolidated_definitions
+
+
+# Definition of a schema which validates any JSON
+IS_JSON_REFERENCE: str = "is-json"
+IS_JSON_REFEREND: str = reference_string(IS_JSON_REFERENCE)
+IS_JSON_SCHEMA: JSONSchema = reference_schema(IS_JSON_REFERENCE)
+IS_JSON_DEFINITION: JSONDefinitions = {
+    IS_JSON_REFERENCE: {
+        ANY_OF_KEYWORD: [
+            NULL_SCHEMA,
+            BOOL_SCHEMA,
+            FLOAT_SCHEMA,
+            STRING_SCHEMA,
+            {TYPE_KEYWORD: OBJECT_TYPE, ADDITIONAL_PROPERTIES_KEYWORD: IS_JSON_SCHEMA},
+            {TYPE_KEYWORD: ARRAY_TYPE, ITEMS_KEYWORD: IS_JSON_SCHEMA}
+        ]
+    }
+}
