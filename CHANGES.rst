@@ -84,3 +84,8 @@ Changelog
 
 - JSON schema package now has tools for working with references/definitions.
 - Configurations now validate additional properties as JSON by default.
+
+0.0.11 (2019-10-09)
+-------------------
+
+- Fix so that JSON schema definitions propagate through all composite schema.
