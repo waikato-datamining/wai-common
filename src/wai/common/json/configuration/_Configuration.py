@@ -1,12 +1,10 @@
-import functools
 from abc import ABC
 from typing import Dict, TypeVar, List, Any, Union, Tuple
 
 from wai.common.json.configuration.property import RawProperty
 from .property._MapProxy import MapProxy
 from ._Absent import Absent
-from ..schema import JSONSchema, JSONDefinitions, standard_object, IS_JSON_SCHEMA, IS_JSON_DEFINITION, \
-    consolidate_definitions
+from ..schema import JSONSchema, standard_object, IS_JSON_SCHEMA, IS_JSON_DEFINITION
 from ..schema.constants import DEFINITIONS_KEYWORD
 from .property import Property
 from .._typing import RawJSONObject
