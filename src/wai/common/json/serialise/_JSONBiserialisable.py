@@ -18,16 +18,6 @@ class JSONBiserialisable(JSONSerialisable, JSONDeserialisable[T]):
         :return:    The copy of this object.
         """
         try:
-            # Create an in-memory stream
-            buffer = io.StringIO()
-
-            # Serialise to the stream
-            self.write_to_stream(buffer)
-
-            # Reset
-            buffer.seek(0)
-
-            # Deserialise from the stream
-            return self.read_from_stream(buffer)
+            return self.from_raw_json(self.to_raw_json())
         except Exception as e:
             raise JSONSerialiseError("Error copying object using JSON serialisation") from e

@@ -27,11 +27,11 @@ class MapProxy(JSONValidatedBiserialisable['ArrayProxy'], ABC):
         """
         pass
 
-    def to_raw_json(self) -> RawJSONElement:
+    def _serialise_to_raw_json(self) -> RawJSONElement:
         return {name: self.sub_property().get_as_raw_json(key) for name, key in self.__key_map.items()}
 
     @classmethod
-    def from_raw_json(cls, raw_json: RawJSONElement) -> 'MapProxy':
+    def _deserialise_from_raw_json(cls, raw_json: RawJSONElement) -> 'MapProxy':
         # Create the instance
         instance = cls()
 

@@ -53,11 +53,11 @@ class ArrayProxy(JSONValidatedBiserialisable['ArrayProxy'], ABC):
         """
         pass
 
-    def to_raw_json(self) -> RawJSONElement:
+    def _serialise_to_raw_json(self) -> RawJSONElement:
         return [self.sub_property().get_as_raw_json(key) for key in self.__key_list]
 
     @classmethod
-    def from_raw_json(cls, raw_json: RawJSONElement) -> 'ArrayProxy':
+    def _deserialise_from_raw_json(cls, raw_json: RawJSONElement) -> 'ArrayProxy':
         # Create the instance
         instance = cls()
 

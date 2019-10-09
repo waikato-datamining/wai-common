@@ -92,7 +92,7 @@ class Configuration(JSONValidatedBiserialisable[T], ABC):
 
         super().__setattr__(key, value)
 
-    def to_raw_json(self) -> RawJSONObject:
+    def _serialise_to_raw_json(self) -> RawJSONObject:
         # Get a list of all properties
         properties = list(self.get_all_properties().values())
 
@@ -115,7 +115,7 @@ class Configuration(JSONValidatedBiserialisable[T], ABC):
         return json
 
     @classmethod
-    def from_raw_json(cls, raw_json: RawJSONObject) -> T:
+    def _deserialise_from_raw_json(cls, raw_json: RawJSONObject) -> T:
         return cls(**raw_json)
 
     @classmethod

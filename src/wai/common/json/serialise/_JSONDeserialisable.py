@@ -1,10 +1,10 @@
 import json
+from abc import abstractmethod
 from typing import TypeVar, Generic, IO
 
-from ...meta import has_been_overridden
 from ._error import JSONSerialiseError
 from .._typing import RawJSONElement
-from ..validator import JSONValidatorInstance
+from ..validator import JSONValidatorClass
 
 # The type of the serialisable object
 T = TypeVar("T", bound="JSONDeserialisable")
@@ -12,16 +12,18 @@ T = TypeVar("T", bound="JSONDeserialisable")
 
 class JSONDeserialisable(Generic[T]):
     """
-    Interface class for objects which can deserialise themselves from JSON. Must override
-    one of either from_raw_json or from_json_string.
+    Interface class for objects which can deserialise themselves from JSON.
     """
-    def __getattribute__(self, item):
-        # Make sure we validate our raw JSON if we are a JSON validator
-        if item == JSONDeserialisable.from_raw_json.__name__ and \
-                isinstance(self, JSONValidatorInstance):
-            return self.with_validation(super().__getattribute__(item))
-        else:
-            return super().__getattribute__(item)
+    @classmethod
+    @abstractmethod
+    def _deserialise_from_raw_json(cls, raw_json: RawJSONElement) -> T:
+        """
+        Implements the actual deserialisation from JSON.
+
+        :param raw_json:    The raw JSON representation.
+        :return:            An instance of the type.
+        """
+        pass
 
     @classmethod
     def from_raw_json(cls, raw_json: RawJSONElement) -> T:
@@ -32,11 +34,14 @@ class JSONDeserialisable(Generic[T]):
         :return:            The object instance.
         """
         try:
-            json_string = json.dumps(raw_json)
+            # Validate the raw JSON if we are capable
+            if issubclass(cls, JSONValidatorClass):
+                cls.validate_raw_json(raw_json)
+
+            # Deserialise
+            return cls._deserialise_from_raw_json(raw_json)
         except Exception as e:
             raise JSONSerialiseError("Error dumping JSON to string") from e
-
-        return cls.from_json_string(json_string)
 
     @classmethod
     def from_json_string(cls, json_string: str) -> T:
@@ -62,10 +67,7 @@ class JSONDeserialisable(Generic[T]):
         :return:        The object instance.
         """
         try:
-            if has_been_overridden(JSONDeserialisable.from_raw_json, cls):
-                return cls.from_raw_json(json.load(stream))
-            else:
-                return cls.from_json_string(stream.read())
+            return cls.from_raw_json(json.load(stream))
         except Exception as e:
             raise JSONSerialiseError("Error reading state from stream") from e
 

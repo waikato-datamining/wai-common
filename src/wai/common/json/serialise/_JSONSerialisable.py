@@ -1,7 +1,7 @@
 import json
+from abc import abstractmethod
 from typing import IO
 
-from ...meta import has_been_overridden
 from ._error import JSONSerialiseError
 from .._typing import RawJSONElement
 from ..validator import JSONValidatorInstance
@@ -9,16 +9,16 @@ from ..validator import JSONValidatorInstance
 
 class JSONSerialisable:
     """
-    Interface class for objects which can serialise themselves to JSON. Must override
-    one of either to_raw_json or to_json_string.
+    Interface class for objects which can serialise themselves to JSON.
     """
-    def __getattribute__(self, item):
-        # Make sure we validate our raw JSON if we are a JSON validator
-        if item == JSONSerialisable.to_raw_json.__name__ and \
-                isinstance(self, JSONValidatorInstance):
-            return self.with_validation(super().__getattribute__(item))
-        else:
-            return super().__getattribute__(item)
+    @abstractmethod
+    def _serialise_to_raw_json(self) -> RawJSONElement:
+        """
+        Performs the actual serialisation.
+
+        :return:    The JSON representation.
+        """
+        pass
 
     def to_raw_json(self) -> RawJSONElement:
         """
@@ -28,7 +28,13 @@ class JSONSerialisable:
         """
         try:
             # Get the raw JSON representation
-            return json.loads(self.to_json_string())
+            raw_json: RawJSONElement = self._serialise_to_raw_json()
+
+            # Validate the JSON if we are capable
+            if isinstance(self, JSONValidatorInstance):
+                self.validate_raw_json(raw_json)
+
+            return raw_json
         except Exception as e:
             raise JSONSerialiseError("Error converting object to raw JSON") from e
 
@@ -50,10 +56,7 @@ class JSONSerialisable:
         :param stream:  The stream to write to.
         """
         try:
-            if has_been_overridden(JSONSerialisable.to_raw_json, self):
-                json.dump(self.to_raw_json(), stream)
-            else:
-                stream.write(self.to_json_string())
+            json.dump(self.to_raw_json(), stream)
         except Exception as e:
             raise JSONSerialiseError("Error writing state to stream") from e
 
