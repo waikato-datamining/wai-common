@@ -100,3 +100,8 @@ Changelog
 -------------------
 
 - Fixed bug in Configuration where cached schema were preventing grand-inheritance.
+
+0.0.14 (????-??-??)
+-------------------
+
+- Configuration schema caching is now lazier than ever.

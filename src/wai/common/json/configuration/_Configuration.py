@@ -145,9 +145,15 @@ class Configuration(JSONValidatedBiserialisable[T], ABC):
         additional_properties_schema: JSONSchema = cls._additional_properties_sub_property[0]\
             .get_json_validation_schema()
 
-        return standard_object(required_properties_schema,
-                               optional_properties_schema,
-                               additional_properties=additional_properties_schema)
+        # Create the schema
+        schema: JSONSchema = standard_object(required_properties_schema,
+                                             optional_properties_schema,
+                                             additional_properties=additional_properties_schema)
+
+        # Cache the schema
+        Configuration.__schema_cache[cls] = schema
+
+        return schema
 
     @classmethod
     def get_all_properties(cls, with_property_names: bool = False) -> Dict[str, Property]:
@@ -204,6 +210,3 @@ class Configuration(JSONValidatedBiserialisable[T], ABC):
         if not isinstance(property, Property):
             property = RawProperty("", property)
         cls._additional_properties_sub_property: Tuple[Property] = (property,)  # Wrapped in a tuple to avoid discovery
-
-        # Cache the schema
-        Configuration.__schema_cache[cls] = cls.get_json_validation_schema()
