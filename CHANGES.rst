@@ -106,3 +106,8 @@ Changelog
 
 - Configuration schema caching is now lazier than ever.
 - JSON serialisation now validates in both directions.
+
+0.0.15 (2019-10-09)
+-------------------
+
+- Bug fixes.
