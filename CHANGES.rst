@@ -116,3 +116,4 @@ Changelog
 -------------------
 
 - Added support for ADAMS report files.
+- Added basic support for geometry.
