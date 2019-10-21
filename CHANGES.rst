@@ -117,3 +117,5 @@ Changelog
 
 - Added support for ADAMS report files.
 - Added basic support for geometry.
+- Added support for working with located objects in image-classification/identification
+  tasks.
