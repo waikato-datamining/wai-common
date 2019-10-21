@@ -112,7 +112,7 @@ Changelog
 
 - Bug fixes.
 
-0.0.16 (2019-??-??)
+0.0.16 (2019-10-22)
 -------------------
 
 - Added support for ADAMS report files.

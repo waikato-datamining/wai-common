@@ -33,12 +33,13 @@ setup(
     namespace_packages=[
         "wai"
     ],
-    version="0.0.15",
+    version="0.0.16",
     author='Corey Sterling',
     author_email='coreytsterling@gmail.com',
     install_requires=[
         "typing-inspect",
-        "jsonschema"
+        "jsonschema",
+        "javaproperties"
     ],
     include_package_data=True
 )
