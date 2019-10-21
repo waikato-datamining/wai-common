@@ -231,3 +231,9 @@ class AbstractField(ABC):
 
     def __str__(self) -> str:
         return self.to_string()
+
+    def __hash__(self) -> int:
+        return self.hash_code()
+
+    def __eq__(self, other) -> bool:
+        return self.equals(other)
