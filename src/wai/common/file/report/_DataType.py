@@ -93,7 +93,7 @@ class DataType(Enum):
         # Default to string
         return DataType.STRING
 
-    def convert(self, obj: Any) -> Union[str, int, float, bool]:
+    def convert(self, obj: Any) -> Union[str, float, bool]:
         """
         Converts a value into the correct internal type for this
         datatype.
