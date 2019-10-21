@@ -274,7 +274,7 @@ class Report:
         :return:        Parameter value.
         """
         if isinstance(key, str):
-            key = Field(key, DataType.BOOLEAN)
+            key = Field(key, DataType.NUMERIC)
 
         return self._params[key] if key in self._params and isinstance(self._params[key], Real) else None
 
