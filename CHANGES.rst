@@ -120,8 +120,8 @@ Changelog
 - Added support for working with located objects in image-classification/identification
   tasks.
 
-0.1.0 (2019-??-??)
-------------------
+0.0.17 (2019-10-31)
+-------------------
 
 - Added TypeVarProperty, for easier caching of dynamic type variables.
 - Added depth argument to flatten (iterators and sequences).
