@@ -14,14 +14,11 @@ class TypeVarProperty:
         self._cache = {}
 
     def __get__(self, instance, owner):
-        # Get the instance class
-        cls = type(instance)
-
         # Get the typevar argument if it's not cached
-        if cls not in self._cache:
-            self._cache[cls] = get_argument_to_typevar(cls, self._base_class, self._typevar)
+        if owner not in self._cache:
+            self._cache[owner] = get_argument_to_typevar(owner, self._base_class, self._typevar)
 
-        return self._cache[cls]
+        return self._cache[owner]
 
     def __set_name__(self, owner, name):
         # Prevents reassignment to parameterised generic base class
