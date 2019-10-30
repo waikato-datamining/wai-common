@@ -3,18 +3,20 @@ from typing import Iterable, Union, Sequence, TypeVar
 SequenceType = TypeVar("SequenceType", bound=Sequence)
 
 
-def flatten(sequence: SequenceType) -> SequenceType:
+def flatten(sequence: SequenceType, depth: int = -1) -> SequenceType:
     """
     Flattens a sequence into a new sequence of the same type.
     Expects that the sequence-type's __init__ method takes an
     iterator (as in list and tuple).
 
     :param sequence:    The sequence to flatten.
+    :param depth:       The number of nested levels to flatten. Set to a negative number
+                        to flatten all levels.
     :return:            A new sequence of the same type, but flattened.
     """
     # Use flattening iterator to initialise a new sequence of the same type
     from ..iterate import flatten
-    return type(sequence)(flatten(sequence))
+    return type(sequence)(flatten(sequence, depth))
 
 
 def normalise_index(index: int, length: Union[int, Sequence]) -> int:

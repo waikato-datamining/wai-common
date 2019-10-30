@@ -29,12 +29,14 @@ def safe_iter(obj) -> Optional[Iterator]:
         return None
 
 
-def flatten(iterable: Iterable) -> Iterator:
+def flatten(iterable: Iterable, depth: int = -1) -> Iterator:
     """
     Gets an iterator for the given iterable, which will
     flatten any iterable elements into the iterator output.
 
     :param iterable:    The iterable.
+    :param depth:       The number of nested levels to flatten. Set to a negative number
+                        to flatten all levels.
     :return:            A flattening iterator over the iterable.
     """
     # Process each element of the iterable in turn
@@ -42,13 +44,13 @@ def flatten(iterable: Iterable) -> Iterator:
         # Try to get an iterator for the element
         element_iter = safe_iter(element)
 
-        # If the element isn't iterable, yield the element itself
-        if element_iter is None:
+        # If the element isn't iterable or we've reached depth, yield the element itself
+        if element_iter is None or depth == 0:
             yield element
 
         # Otherwise yield each sub-element of the flattened element
         else:
-            for sub_element in flatten(element_iter):
+            for sub_element in flatten(element_iter, depth - 1):
                 yield sub_element
 
 
