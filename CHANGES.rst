@@ -124,3 +124,4 @@ Changelog
 ------------------
 
 - Added TypeVarProperty, for easier caching of dynamic type variables.
+- Added depth argument to flatten (iterators and sequences).
