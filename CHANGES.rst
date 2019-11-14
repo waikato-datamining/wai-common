@@ -125,3 +125,9 @@ Changelog
 
 - Added TypeVarProperty, for easier caching of dynamic type variables.
 - Added depth argument to flatten (iterators and sequences).
+
+0.0.18 (2019-11-15)
+-------------------
+
+- Added PathContextManager, which is a context manager which changes the cwd temporarily.
+- Added ensure_path, which creates a directory if it doesn't exist.
