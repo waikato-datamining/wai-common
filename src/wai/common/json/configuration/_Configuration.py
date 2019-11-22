@@ -8,7 +8,7 @@ from ..schema import JSONSchema, standard_object, IS_JSON_SCHEMA, IS_JSON_DEFINI
 from ..schema.constants import DEFINITIONS_KEYWORD
 from .property import Property
 from .._typing import RawJSONObject
-from ..serialise import JSONValidatedBiserialisable
+from ..serialise import JSONValidatedBiserialisable, JSONSerialisable
 
 T = TypeVar("T", bound="Configuration")
 
@@ -110,7 +110,8 @@ class Configuration(JSONValidatedBiserialisable[T], ABC):
         }
 
         # Add any additional properties
-        json.update(self._additional_properties)
+        json.update({key: value.to_raw_json() if isinstance(value, JSONSerialisable) else value
+                     for key, value in self._additional_properties.items()})
 
         return json
 
