@@ -1,6 +1,7 @@
 from ._Property import Property
 from ._ProxyProperty import ProxyProperty
 from ._MapProxy import MapProxy
+from ._RawProperty import RawProperty
 
 
 class MapProperty(ProxyProperty):
@@ -8,24 +9,26 @@ class MapProperty(ProxyProperty):
     Property which validates a map of strings to some other type.
     """
     def __init__(self,
-                 sub_property: Property):
-
-        # Create a closure class to proxy the array
+                 name: str = "",
+                 value_property: Property = RawProperty(),  # Default property always fails, so will need replacing
+                 *,
+                 optional: bool = False):
+        # Create a closure class to proxy the map
         class ClosureMapProxy(MapProxy):
             @classmethod
-            def sub_property(cls) -> Property:
-                return sub_property
+            def value_property(cls) -> Property:
+                return value_property
 
         super().__init__(
-            sub_property.name(),
+            name,
             ClosureMapProxy,
-            optional=sub_property.is_optional()
+            optional=optional
         )
 
-    def __set__(self, instance, value):
-        # Convert other proxy-maps and raw dicts to our proxy-type
+    def validate_value(self, instance, value):
+        # Convert other map-proxies and raw dictionaries to our proxy-type
         if (isinstance(value, MapProxy) and not isinstance(value, self.type())) or \
            isinstance(value, dict):
             value = self.type()(value)
 
-        super().__set__(instance, value)
+        return super().validate_value(instance, value)

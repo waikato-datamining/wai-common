@@ -22,7 +22,7 @@ class ArrayProxy(JSONValidatedBiserialisable['ArrayProxy'], ABC):
 
     @classmethod
     @abstractmethod
-    def sub_property(cls) -> Property:
+    def element_property(cls) -> Property:
         """
         Gets the property which is used to validate elements of the array.
         """
@@ -54,7 +54,7 @@ class ArrayProxy(JSONValidatedBiserialisable['ArrayProxy'], ABC):
         pass
 
     def _serialise_to_raw_json(self) -> RawJSONElement:
-        return [self.sub_property().get_as_raw_json(key) for key in self.__key_list]
+        return [self.element_property().get_as_raw_json(key) for key in self.__key_list]
 
     @classmethod
     def _deserialise_from_raw_json(cls, raw_json: RawJSONElement) -> 'ArrayProxy':
@@ -66,18 +66,25 @@ class ArrayProxy(JSONValidatedBiserialisable['ArrayProxy'], ABC):
 
         # Deserialise and add the elements of the list
         for key, value in zip(instance.__key_list, raw_json):
-            cls.sub_property().set_from_raw_json(key, value)
+            cls.element_property().__set__(key, value)
 
         return instance
 
     @classmethod
     def get_json_validation_schema(cls) -> JSONSchema:
         return regular_array(
-            cls.sub_property().get_json_validation_schema(),
+            cls.element_property().get_json_validation_schema(),
             cls.min_elements(),
             cls.max_elements(),
             cls.unique_elements()
         )
+
+    def __init_subclass__(cls, **kwargs):
+        # Make sure the sub-property isn't optional
+        if cls.element_property().is_optional():
+            raise ValueError("Can't use optional sub-property with arrays")
+
+        super().__init_subclass__(**kwargs)
 
     # ------------ #
     # LIST METHODS #
@@ -96,7 +103,7 @@ class ArrayProxy(JSONValidatedBiserialisable['ArrayProxy'], ABC):
         key = DummyInstance()
 
         # Add the value to the sub-property
-        self.sub_property().__set__(key, value)
+        self.element_property().__set__(key, value)
 
         # Append the key to the key-list
         self.__key_list.append(key)
@@ -139,7 +146,7 @@ class ArrayProxy(JSONValidatedBiserialisable['ArrayProxy'], ABC):
         key = DummyInstance()
 
         # Add the value to the sub-property
-        self.sub_property().__set__(key, value)
+        self.element_property().__set__(key, value)
 
         # Insert the key into the key-list
         self.__key_list.insert(index, key)
@@ -153,7 +160,7 @@ class ArrayProxy(JSONValidatedBiserialisable['ArrayProxy'], ABC):
         key = self.__key_list.pop(index)
 
         # Return the value for the key
-        return self.sub_property().__get__(key, None)
+        return self.element_property().__get__(key, None)
 
     def remove(self, value):
         self.pop(self.index(value))
@@ -164,13 +171,13 @@ class ArrayProxy(JSONValidatedBiserialisable['ArrayProxy'], ABC):
     def sort(self, *,
              key: Optional[Callable[[Any], Any]] = lambda k: k,
              reverse: bool = False):
-        self.__key_list.sort(key=lambda k: key(self.sub_property().__get__(k, None)), reverse=reverse)
+        self.__key_list.sort(key=lambda k: key(self.element_property().__get__(k, None)), reverse=reverse)
 
     def __add__(self, x: List) -> List:
         return self[:] + x
 
     def __contains__(self, value) -> bool:
-        return any(self.__values_equal(value, self.sub_property().__get__(key, None)) for key in self.__key_list)
+        return any(self.__values_equal(value, self.element_property().__get__(key, None)) for key in self.__key_list)
 
     def __delitem__(self, *args, **kwargs):
         # TODO
@@ -184,7 +191,7 @@ class ArrayProxy(JSONValidatedBiserialisable['ArrayProxy'], ABC):
         if isinstance(y, slice):
             return [self[i] for i in range(*y.indices(len(self)))]
         else:
-            return self.sub_property().__get__(self.__key_list.__getitem__(y), None)
+            return self.element_property().__get__(self.__key_list.__getitem__(y), None)
 
     def __ge__(self, *args, **kwargs):
         # TODO
@@ -203,7 +210,7 @@ class ArrayProxy(JSONValidatedBiserialisable['ArrayProxy'], ABC):
         raise NotImplementedError(ArrayProxy.__imul__.__qualname__)
 
     def __iter__(self) -> Iterator:
-        return (self.sub_property().__get__(key, None) for key in self.__key_list)
+        return (self.element_property().__get__(key, None) for key in self.__key_list)
 
     def __len__(self) -> int:
         return len(self.__key_list)
@@ -228,7 +235,7 @@ class ArrayProxy(JSONValidatedBiserialisable['ArrayProxy'], ABC):
         return str(element for element in self)
 
     def __reversed__(self):
-        return (self.sub_property().__get__(key, None) for key in reversed(self.__key_list))
+        return (self.element_property().__get__(key, None) for key in reversed(self.__key_list))
 
     def __rmul__(self, *args, **kwargs):
         # TODO
@@ -242,7 +249,7 @@ class ArrayProxy(JSONValidatedBiserialisable['ArrayProxy'], ABC):
         # Get the key for the item
         key = self.__key_list[index]
 
-        self.sub_property().__set__(key, value)
+        self.element_property().__set__(key, value)
 
     def __str__(self):
         return self.to_json_string()

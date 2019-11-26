@@ -131,3 +131,8 @@ Changelog
 
 - Added PathContextManager, which is a context manager which changes the cwd temporarily.
 - Added ensure_path, which creates a directory if it doesn't exist.
+
+0.0.19 (2019-11-27)
+-------------------
+
+- Reworking of JSON configurations to unify value setting between internal and JSON values.

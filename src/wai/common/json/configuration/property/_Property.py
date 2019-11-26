@@ -1,4 +1,5 @@
 from abc import abstractmethod, ABC
+from typing import Any
 from weakref import WeakKeyDictionary
 
 from .._OptionallyPresent import OptionallyPresent
@@ -9,14 +10,14 @@ from ...validator import JSONValidatorInstance
 
 class Property(JSONValidatorInstance, ABC):
     """
-    A property of a configuration is an instance value in the configuration
-    object's keys. The value of a property is a raw JSON element, or something
+    A property of a configuration describes a key to the object and the types
+    of value it can take. The value of a property is a raw JSON element, or something
     that can be converted to/from raw JSON. The property name can be set to the
     empty string to inherit the attribute name it is set against in the
     configuration.
     """
     def __init__(self,
-                 name: str,
+                 name: str = "",  # Default tells the property to inherit its attribute name
                  *,
                  optional: bool = False):
         self.__name: str = name
@@ -51,17 +52,6 @@ class Property(JSONValidatorInstance, ABC):
         # Get the value for this property
         return self.__values[instance]
 
-    def __set__(self, instance, value):
-        # Must be accessed via an instance
-        self._require_instance(instance)
-
-        # Validate the value
-        self.validate_value(value)
-
-        # Set the value in the instance dictionary
-        self.__values[instance] = value
-
-    @abstractmethod
     def get_as_raw_json(self, instance) -> OptionallyPresent[RawJSONElement]:
         """
         Gets the value of this property as raw JSON.
@@ -69,20 +59,48 @@ class Property(JSONValidatorInstance, ABC):
         :param instance:    The instance to get the value for.
         :return:            The raw JSON, or Absent.
         """
-        pass
+        # Make sure we have an instance
+        self._require_instance(instance)
 
-    @abstractmethod
-    def set_from_raw_json(self, instance, value: OptionallyPresent[RawJSONElement]):
-        """
-        Sets the value of this property from raw JSON.
+        # Get the value for the instance
+        value = self.__get__(instance, None)
 
-        :param instance:    The instance to set the value for.
-        :param value:       The raw JSON value.
+        # If the value is present, convert it to raw JSON
+        if value is not Absent:
+            value = self._value_as_raw_json(instance, value)
+
+        return value
+
+    def __set__(self, instance, value):
+        # Must be accessed via an instance
+        self._require_instance(instance)
+
+        # Validate the value
+        if value is not Absent:
+            value = self.validate_value(instance, value)
+        elif not self.is_optional():
+            raise ValueError(f"Cannot set non-optional property '{self.name()}' as absent")
+
+        # Set the value in the instance dictionary
+        self._set_unchecked(instance, value)
+
+    def _set_unchecked(self, instance, value):
         """
-        pass
+        Sets the value of this property without performing
+        any validation.
+
+        :param instance:    The instance to set the value against.
+        :param value:       The value to set.
+        """
+        self.__values[instance] = value
 
     def __delete__(self, instance):
-        raise AttributeError("Cannot delete configuration properties")
+        # Can't delete the property itself
+        if instance is None:
+            raise AttributeError(f"Can't delete configuration properties")
+
+        # Deleting the property value for an instance sets it as absent
+        self.__set__(instance, Absent)
 
     def __set_name__(self, owner, name: str):
         # Can't have private properties
@@ -96,7 +114,7 @@ class Property(JSONValidatorInstance, ABC):
     @staticmethod
     def _require_instance(instance):
         """
-        Raises an exception if instance is None.
+        Helper method which raises an exception if instance is None.
 
         :param instance:    The instance.
         """
@@ -104,12 +122,26 @@ class Property(JSONValidatorInstance, ABC):
         if instance is None:
             raise AttributeError("Cannot access property through class (requires instance)")
 
-    def validate_value(self, value):
+    @abstractmethod
+    def _value_as_raw_json(self, instance, value) -> RawJSONElement:
         """
-        Performs property value validation. Raises an AttributeError if validation fails.
+        Converts a value of this property to raw JSON.
 
-        :param value:           The value to validate.
+        :param instance:    The instance the value belongs to.
+        :param value:       The value to convert.
+        :return:            The raw JSON.
         """
-        # Check for an absent value if allowed
-        if not self.__optional and value is Absent:
-            raise AttributeError(f"Cannot set non-optional property {self.name()} as absent")
+        pass
+
+    @abstractmethod
+    def validate_value(self, instance, value) -> Any:
+        """
+        Performs property value validation. Should raise a ValueError if
+        validation fails, or return the actual value to store if validation
+        passes.
+
+        :param instance:    The instance the value is for.
+        :param value:       The value to validate.
+        :return:            The value to store.
+        """
+        pass

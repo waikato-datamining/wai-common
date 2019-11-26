@@ -3,6 +3,7 @@ from typing import Optional
 from ._Property import Property
 from ._ProxyProperty import ProxyProperty
 from ._ArrayProxy import ArrayProxy
+from ._RawProperty import RawProperty
 
 
 class ArrayProperty(ProxyProperty):
@@ -10,16 +11,18 @@ class ArrayProperty(ProxyProperty):
     Property which validates a regular array of elements.
     """
     def __init__(self,
-                 sub_property: Property,
+                 name: str = "",
+                 element_property: Property = RawProperty(),  # Default property always fails, so will need replacing
                  min_elements: int = 0,
                  max_elements: Optional[int] = None,
-                 unique_elements: bool = False):
-
+                 unique_elements: bool = False,
+                 *,
+                 optional: bool = False):
         # Create a closure class to proxy the array
         class ClosureArrayProxy(ArrayProxy):
             @classmethod
-            def sub_property(cls) -> Property:
-                return sub_property
+            def element_property(cls) -> Property:
+                return element_property
 
             @classmethod
             def min_elements(cls) -> int:
@@ -34,15 +37,15 @@ class ArrayProperty(ProxyProperty):
                 return unique_elements
 
         super().__init__(
-            sub_property.name(),
+            name,
             ClosureArrayProxy,
-            optional=sub_property.is_optional()
+            optional=optional
         )
 
-    def __set__(self, instance, value):
-        # Convert other proxy-arrays and raw lists to our proxy-type
+    def validate_value(self, instance, value):
+        # Convert other proxy-arrays and raw lists/tuples to our proxy-type
         if (isinstance(value, ArrayProxy) and not isinstance(value, self.type())) or \
-           isinstance(value, list):
+           isinstance(value, list) or isinstance(value, tuple):
             value = self.type()(value)
 
-        super().__set__(instance, value)
+        return super().validate_value(instance, value)

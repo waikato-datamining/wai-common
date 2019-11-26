@@ -9,7 +9,7 @@ class StringProperty(RawProperty):
     Configuration property which validates a string.
     """
     def __init__(self,
-                 name: str,
+                 name: str = "",
                  min_length: Optional[int] = None,
                  max_length: Optional[int] = None,
                  pattern: Optional[str] = None,

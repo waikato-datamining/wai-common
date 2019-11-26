@@ -21,14 +21,14 @@ class MapProxy(JSONValidatedBiserialisable['MapProxy'], ABC):
 
     @classmethod
     @abstractmethod
-    def sub_property(cls) -> Property:
+    def value_property(cls) -> Property:
         """
         Gets the property which is used to validate elements of the map.
         """
         pass
 
     def _serialise_to_raw_json(self) -> RawJSONElement:
-        return {name: self.sub_property().get_as_raw_json(key) for name, key in self.__key_map.items()}
+        return {name: self.value_property().get_as_raw_json(key) for name, key in self.__key_map.items()}
 
     @classmethod
     def _deserialise_from_raw_json(cls, raw_json: RawJSONElement) -> 'MapProxy':
@@ -44,13 +44,20 @@ class MapProxy(JSONValidatedBiserialisable['MapProxy'], ABC):
             instance.__key_map[name] = key
 
             # Add the value to the property
-            cls.sub_property().set_from_raw_json(key, value)
+            cls.value_property().__set__(key, value)
 
         return instance
 
     @classmethod
     def get_json_validation_schema(cls) -> JSONSchema:
-        return standard_object(additional_properties=cls.sub_property().get_json_validation_schema())
+        return standard_object(additional_properties=cls.value_property().get_json_validation_schema())
+
+    def __init_subclass__(cls, **kwargs):
+        # Make sure the sub-property isn't optional
+        if cls.value_property().is_optional():
+            raise ValueError("Can't use optional sub-property with maps")
+
+        super().__init_subclass__(**kwargs)
 
     # ------------ #
     # DICT METHODS #
@@ -94,7 +101,7 @@ class MapProxy(JSONValidatedBiserialisable['MapProxy'], ABC):
     def popitem(self):
         key, instance = self.__key_map.popitem()
 
-        return key, self.sub_property().__get__(instance, None)
+        return key, self.value_property().__get__(instance, None)
 
     def setdefault(self, key, default):
         if key not in self:
@@ -128,7 +135,7 @@ class MapProxy(JSONValidatedBiserialisable['MapProxy'], ABC):
         raise NotImplementedError(MapProxy.__eq__.__qualname__)
 
     def __getitem__(self, y):
-        return self.sub_property().__get__(self.__key_map[y], None)
+        return self.value_property().__get__(self.__key_map[y], None)
 
     def __ge__(self, *args, **kwargs):
         # TODO
@@ -164,7 +171,7 @@ class MapProxy(JSONValidatedBiserialisable['MapProxy'], ABC):
         instance = DummyInstance()
 
         # Set the value on the sub-property
-        self.sub_property().__set__(instance, value)
+        self.value_property().__set__(instance, value)
 
         # Put the reference in the key-map
         self.__key_map[key] = instance

@@ -10,7 +10,7 @@ class NumberProperty(RawProperty):
     Property which validates a number.
     """
     def __init__(self,
-                 name: str,
+                 name: str = "",
                  minimum: Optional[RawJSONNumber] = None,
                  maximum: Optional[RawJSONNumber] = None,
                  integer_only: bool = False,

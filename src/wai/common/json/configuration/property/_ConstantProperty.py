@@ -8,8 +8,8 @@ class ConstantProperty(RawProperty):
     Configuration property which validates a constant primitive value.
     """
     def __init__(self,
-                 name: str,
-                 value: RawJSONPrimitive,
+                 name: str = "",
+                 value: RawJSONPrimitive = None,
                  *,
                  optional: bool = False):
         super().__init__(

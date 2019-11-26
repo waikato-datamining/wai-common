@@ -1,13 +1,13 @@
 from typing import List, Iterable
 
-from ...schema import any_of
+from ...schema import all_of
 from ._OfProperty import OfProperty
 from ._Property import Property
 
 
-class AnyOfProperty(OfProperty):
+class AllOfProperty(OfProperty):
     """
-    Property which validates JSON that matches at least one of
+    Property which validates JSON that matches all of
     a number of sub-properties.
     """
     def __init__(self,
@@ -18,15 +18,13 @@ class AnyOfProperty(OfProperty):
         super().__init__(
             name,
             sub_properties,
-            any_of,
+            all_of,
             optional=optional
         )
 
     def choose_subproperty(self, successes: List[bool]) -> int:
-        # Search the list
-        for i, success in enumerate(successes):
-            # Return the first valid index found
-            if success:
-                return i
+        # If all sub-properties match, just pick the first one
+        if all(successes):
+            return 0
 
-        raise ValueError(f"Value didn't match any sub-properties")
+        raise ValueError(f"Value didn't match all sub-properties")

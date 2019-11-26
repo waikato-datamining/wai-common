@@ -7,7 +7,7 @@ class BoolProperty(RawProperty):
     Configuration property which validates a boolean value.
     """
     def __init__(self,
-                 name: str,
+                 name: str = "",
                  *,
                  optional: bool = False):
         super().__init__(

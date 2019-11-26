@@ -1,14 +1,14 @@
+import functools
 from abc import ABC
-from typing import Dict, TypeVar, List, Any, Union, Tuple, Type
+from typing import Dict, TypeVar, List, Any, Union, Type
 
-from wai.common.json.configuration.property import RawProperty
+from .property import RawProperty, Property
 from .property._MapProxy import MapProxy
 from ._Absent import Absent
 from ..schema import JSONSchema, standard_object, IS_JSON_SCHEMA, IS_JSON_DEFINITION
 from ..schema.constants import DEFINITIONS_KEYWORD
-from .property import Property
 from .._typing import RawJSONObject
-from ..serialise import JSONValidatedBiserialisable, JSONSerialisable
+from ..serialise import JSONValidatedBiserialisable
 
 T = TypeVar("T", bound="Configuration")
 
@@ -44,34 +44,25 @@ class Configuration(JSONValidatedBiserialisable[T], ABC):
                                                Absent)
 
             # Attempt to set the value
-            try:
-                # Set explicitly first
-                property.__set__(self, initial_value)
-            except Exception as e:
-                try:
-                    # If that fails, set by JSON
-                    property.set_from_raw_json(self, initial_value)
-                except Exception as e2:
-                    # If that fails as well, let the exception escape
-                    raise e2 from e
+            property.__set__(self, initial_value)
 
         # Treat remaining initial values as additional properties
-        self._additional_properties = self.init_additional_properties(**initial_values)
+        self._additional_properties = self._init_additional_properties(**initial_values)
 
     @classmethod
-    def init_additional_properties(cls, **initial_values):
+    def _init_additional_properties(cls, **initial_values):
         """
         Initialises the additional-properties storage for this configuration.
 
         :param initial_values:  The initial values that weren't explicit properties.
         """
         # Create the closure of the sub-property
-        sub_property: Property = cls._additional_properties_sub_property[0]
+        sub_property: Property = cls.additional_properties_validation()
 
         # Create a map closure class to act as the storage
         class AdditionalPropertiesProxy(MapProxy):
             @classmethod
-            def sub_property(cls) -> Property:
+            def value_property(cls) -> Property:
                 return sub_property
 
         # Create the storage
@@ -89,12 +80,13 @@ class Configuration(JSONValidatedBiserialisable[T], ABC):
         if key != "_additional_properties":
             if not hasattr(self, key) or key in self._additional_properties:
                 self._additional_properties[key] = value
+                return
 
         super().__setattr__(key, value)
 
     def _serialise_to_raw_json(self) -> RawJSONObject:
-        # Get a list of all properties
-        properties = list(self.get_all_properties().values())
+        # Get all properties
+        properties = self.get_all_properties().values()
 
         # Convert the properties to JSON (includes Absent values)
         json_with_absents = {
@@ -110,8 +102,7 @@ class Configuration(JSONValidatedBiserialisable[T], ABC):
         }
 
         # Add any additional properties
-        json.update({key: value.to_raw_json() if isinstance(value, JSONSerialisable) else value
-                     for key, value in self._additional_properties.items()})
+        json.update(self._additional_properties.to_raw_json())
 
         return json
 
@@ -143,8 +134,7 @@ class Configuration(JSONValidatedBiserialisable[T], ABC):
         }
 
         # Extract the additional properties schema
-        additional_properties_schema: JSONSchema = cls._additional_properties_sub_property[0]\
-            .get_json_validation_schema()
+        additional_properties_schema: JSONSchema = cls.additional_properties_validation().get_json_validation_schema()
 
         # Create the schema
         schema: JSONSchema = standard_object(required_properties_schema,
@@ -206,8 +196,16 @@ class Configuration(JSONValidatedBiserialisable[T], ABC):
         if len(property_names) != len(set(property_names)):
             raise TypeError(f"Duplicate property names in {cls.__name__}: {', '.join(property_names)}")
 
-        # Initialise the additional properties validation property
-        property = cls.additional_properties_validation()
-        if not isinstance(property, Property):
-            property = RawProperty("", property)
-        cls._additional_properties_sub_property: Tuple[Property] = (property,)  # Wrapped in a tuple to avoid discovery
+        # If additional properties validation is specified by schema,
+        # turn it into a property
+        if not isinstance(cls.additional_properties_validation(), Property):
+            # Close the schema version of the method
+            schema_validation = cls.additional_properties_validation
+
+            # Define a wrapper method which puts the schema in a raw property
+            @functools.wraps(schema_validation)
+            def property_validation():
+                return RawProperty(schema=schema_validation())
+
+            # Attach the property version to the class
+            cls.additional_properties_validation = property_validation

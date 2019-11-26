@@ -1,9 +1,8 @@
 from abc import ABC
 from typing import Type
 
+from ....abc import is_abstract_class
 from ..._typing import RawJSONElement
-from .._OptionallyPresent import OptionallyPresent
-from .._Absent import Absent
 from ...schema import JSONSchema
 from ...serialise import JSONValidatedBiserialisable
 from ._Property import Property
@@ -15,8 +14,8 @@ class ProxyProperty(Property, ABC):
     to/from JSON.
     """
     def __init__(self,
-                 name: str,
-                 type: Type[JSONValidatedBiserialisable],
+                 name: str = "",
+                 type: Type[JSONValidatedBiserialisable] = JSONValidatedBiserialisable,
                  *,
                  optional: bool = False):
         super().__init__(
@@ -24,35 +23,36 @@ class ProxyProperty(Property, ABC):
             optional=optional
         )
 
+        # Type argument must be concrete
+        if is_abstract_class(type):
+            raise ValueError(f"type argument must be a concrete class, got {type.__name__}")
+
+        # The type of values this property takes
         self.__type: Type[JSONValidatedBiserialisable] = type
 
     def type(self) -> Type[JSONValidatedBiserialisable]:
         """
-        Gets the type of this proxy-property.
+        Gets the type of values this proxy-property takes.
         """
         return self.__type
 
-    def get_as_raw_json(self, instance) -> OptionallyPresent[RawJSONElement]:
-        # Get the proxy value
-        value = self.__get__(instance, None)
-
-        # If not absent, serialise it
-        return value.to_raw_json() if isinstance(value, JSONValidatedBiserialisable) else value
-
-    def set_from_raw_json(self, instance, value: OptionallyPresent[RawJSONElement]):
-        # Deserialise the value
-        self.__set__(instance, self.__type.from_raw_json(value) if value is not Absent else Absent)
-
     def get_json_validation_schema(self) -> JSONSchema:
+        # Use the value-type's schema
         return self.__type.get_json_validation_schema()
 
-    def validate_value(self, value):
-        super().validate_value(value)
+    def _value_as_raw_json(self, instance, value: JSONValidatedBiserialisable) -> RawJSONElement:
+        # Values are serialisable, so just serialise it
+        return value.to_raw_json()
 
-        # No need to continue validation if value is absent
-        if value is Absent:
-            return
-
-        # Must be an instance of the correct type
+    def validate_value(self, instance, value):
+        # Must be an instance of the correct type, or JSON deserialisable to the correct type
         if not isinstance(value, self.__type):
-            raise AttributeError(f"{value} is not an instance of {self.__type.__name__}")
+            try:
+                if isinstance(value, str):
+                    return self.__type.from_json_string(value)
+                else:
+                    return self.__type.from_raw_json(value)
+            except Exception as e:
+                raise ValueError(f"Error validating proxy value: {e}") from e
+
+        return value

@@ -9,8 +9,8 @@ class SubConfiguration(ProxyProperty):
     Property which validates a sub-configuration (essentially an object).
     """
     def __init__(self,
-                 name: str,
-                 configuration_type: Type[Configuration],
+                 name: str = "",
+                 configuration_type: Type[Configuration] = Configuration,
                  *,
                  optional: bool = False):
         super().__init__(

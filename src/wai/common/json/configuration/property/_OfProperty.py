@@ -1,5 +1,5 @@
 from abc import abstractmethod
-from typing import Tuple, Optional, List
+from typing import Tuple, List, Any, Iterable, Callable
 from weakref import WeakKeyDictionary
 
 from ...schema import JSONSchema
@@ -15,154 +15,149 @@ class OfProperty(Property):
     Base class for OneOfProperty and AnyOfProperty.
     """
     def __init__(self,
-                 name: str,
-                 *sub_properties: Property,
-                 schema_function,  # one_of/any_of
+                 name: str = "",
+                 sub_properties: Iterable[Property] = tuple(),
+                 schema_function: Callable[[Iterable[JSONSchema]], JSONSchema] = None,  # one_of/any_of/all_of
+                 *,
                  optional: bool = False):
+        # Consume the sub-properties
+        sub_properties = tuple(sub_properties)
+
+        # Must provide at least 2 sub-properties
+        if len(sub_properties) < 2:
+            raise ValueError(f"Of properties require at least 2 sub-properties")
+
         super().__init__(
             name,
             optional=optional
         )
 
-        self._sub_properties: Tuple[Property] = sub_properties
-        self._instance_keys = WeakKeyDictionary()
+        self.__sub_properties: Tuple[Property] = sub_properties
+        self.__instance_keys = WeakKeyDictionary()
         self.__schema_function = schema_function
 
-    def get_json_validation_schema(self) -> JSONSchema:
-        return self.__schema_function(
-            *(
-                property.get_json_validation_schema()
-                for property in self._sub_properties
-            )
-        )
-
-    def set_search_with_revert(self, instance, value, set_method):
+    def _get_current_subproperty(self, instance) -> Tuple[OptionallyPresent[Property],
+                                                          OptionallyPresent[DummyInstance]]:
         """
-        Attempts to set this property, and reverts to the current
-        value if setting fails.
+        Gets the sub-property which contains the value for the
+        given instance, and the key to that value.
 
-        :param instance:    The instance to set the value for.
-        :param value:       The value to set.
-        :param set_method:  A function which returns the set-method
-                            to use on an object.
+        :return:    The property and the instance key to its value,
+                    or a pair of Absents if the value is absent.
         """
-        # Make sure instance is not None
-        self._require_instance(instance)
-
-        # Attempt to get the current value
-        try:
-            current_value = self.__get__(instance, None)
-        except AttributeError as e:
-            # No current value
-            current_value = e
-
-        # Try to set the value
-        try:
-            self.set_search(instance, value, set_method)
-        except Exception as e:
-            if not isinstance(current_value, AttributeError):
-                self.__set__(instance, current_value)
-
-            raise e
-
-    def set_search(self, instance, value, set_method):
-        """
-        Performs the logic of setting the value for this property.
-
-        :param instance:    The instance to set the value for.
-        :param value:       The value to set.
-        :param set_method:  A function which returns the set-method
-                            to use on an object.
-        """
-        # If the value is absent, set it directly
-        if value is Absent:
-            # Remove the current instance key if there is one
-            if instance in self._instance_keys:
-                self._instance_keys.pop(instance)
-
-            super().__set__(instance, Absent)
-
-            return
-
-        # Find the properties this value is valid for
-        keys = []
-        for property in self._sub_properties:
-            try:
-                # Create a new key for this value
-                keys.append(DummyInstance())
-
-                set_method(property)(keys[-1], value)
-            except Exception:
-                keys[-1] = None
-
-        # Select the canonical index
-        key_index = self.choose_current_property(keys)
-
-        # Save it
-        super().__set__(instance, key_index)
-        self._instance_keys[instance] = keys[key_index]
-
-    @abstractmethod
-    def choose_current_property(self, keys: List[Optional[DummyInstance]]) -> int:
-        """
-        Allows the sub-classes to choose which sub-property should
-        store the value based on the success or failure of all sub-
-        properties being set. Should raise an attribute error if it
-        can't decide.
-
-        :param keys:    The list of keys for the properties that were set,
-                        and Nones for the properties that weren't.
-        :return:        The index of the property to regard as storing the
-                        value.
-        """
-        pass
-
-    def __get__(self, instance, owner):
-        # Get the current value
-        value = super().__get__(instance, owner)
-
-        # If it's an index, return the value of the sub-property
-        # at that index
-        if isinstance(value, int):
-            return self._sub_properties[value].__get__(self._instance_keys[instance], owner)
-
-        # Otherwise it's absent or self
-        return value
-
-    def __set__(self, instance, value):
-        self.set_search_with_revert(instance,
-                                    value,
-                                    lambda property: property.__set__)
-
-    def get_as_raw_json(self, instance) -> OptionallyPresent[RawJSONElement]:
-        # Make sure instance is not None
+        # Only valid for instances
         self._require_instance(instance)
 
         # Get the current value
         value = super().__get__(instance, None)
 
-        # If it's an index, return the JSON of the sub-property
-        # at that index
+        # If it's an index, convert it to the sub-property at that index
         if isinstance(value, int):
-            return self._sub_properties[value].get_as_raw_json(self._instance_keys[instance])
+            return self.__sub_properties[value], self.__instance_keys[instance]
 
-        # Otherwise it's absent or self
-        return value
+        return Absent, Absent
 
-    def set_from_raw_json(self, instance, value: OptionallyPresent[RawJSONElement]):
-        self.set_search_with_revert(instance,
-                                    value,
-                                    lambda property: property.set_from_raw_json)
+    def get_json_validation_schema(self) -> JSONSchema:
+        return self.__schema_function(
+            *(
+                property.get_json_validation_schema()
+                for property in self.__sub_properties
+            )
+        )
 
-    def validate_value(self, value):
-        super().validate_value(value)
+    def _set_unchecked(self, instance, value):
+        # If setting an instance's value to absent, discard its
+        # current instance key if it has one
+        if value is Absent and instance in self.__instance_keys:
+            del self.__instance_keys[instance]
 
-        # No need to continue validation if value is absent
+        # Set as usual
+        super()._set_unchecked(instance, value)
+
+    def select_from_valid_subproperties(self, instance, value) -> Tuple[Any, int]:
+        """
+        Tests the given value against all sub-properties, and returns
+        the validated value along with the index of the sub-property
+        it should be stored against.
+
+        :param instance:    The instance the value is for.
+        :param value:       The value.
+        :return:            The value to store, and the sub-property index
+                            to store it against.
+        """
+        # Find the properties this value is valid for
+        values = []
+        for property in self.__sub_properties:
+            # Record the validated value, or Absent if validation failed
+            try:
+                validated_value = property.validate_value(instance, value)
+            except Exception:
+                validated_value = Absent
+
+            values.append(validated_value)
+
+        # Select the canonical index
+        subproperty_selection = self.choose_subproperty([value is not Absent for value in values])
+
+        # Make sure the selection is in range
+        if not isinstance(subproperty_selection, int) or not (0 <= subproperty_selection < len(self.__sub_properties)):
+            raise ValueError(f"Error in internal index for Of property. "
+                             f"Index should be integer in [0:{len(self.__sub_properties)}), "
+                             f"got {subproperty_selection}")
+
+        # Get the selection
+        value = values[subproperty_selection]
+
+        # Make sure the selected value is one of the successful ones
         if value is Absent:
-            return
+            raise ValueError(f"Error selecting sub-property: selected sub-property {subproperty_selection} "
+                             f"which failed validation")
 
-        # Our values are indices into the sub-properties
-        if not isinstance(value, int) or not (0 <= value < len(self._sub_properties)):
-            raise AttributeError(f"Error in internal index for Of property. "
-                                 f"Index should be integer in [0:{len(self._sub_properties)}), "
-                                 f"got {value}")
+        return value, subproperty_selection
+
+    @abstractmethod
+    def choose_subproperty(self, successes: List[bool]) -> int:
+        """
+        Allows the sub-classes to choose which sub-property should
+        store a value based on the success or failure of all sub-
+        properties validating the value. Should raise an ValueError if it
+        can't decide.
+
+        :param successes:   The list of property validation successes/failures.
+        :return:            The index of the property to regard as storing the
+                            value.
+        """
+        pass
+
+    def __get__(self, instance, owner):
+        # No instance returns the property itself
+        if instance is None:
+            return self
+
+        # Get the current sub-property
+        subproperty, instance_key = self._get_current_subproperty(instance)
+
+        # If the current sub-property is absent then so is the value
+        if subproperty is Absent:
+            return Absent
+
+        return subproperty.__get__(instance_key, owner)
+
+    def _value_as_raw_json(self, instance, value) -> RawJSONElement:
+        # Get the sub-property the value is stored in
+        subproperty, instance_key = self._get_current_subproperty(instance)
+
+        # Use the sub-property to convert the value to raw JSON
+        return subproperty._value_as_raw_json(instance_key, value)
+
+    def validate_value(self, instance, value) -> Any:
+        # Select the sub-property to use
+        value, subproperty_index = self.select_from_valid_subproperties(instance, value)
+
+        # Set the value against the selected sub-property
+        key = DummyInstance()
+        self.__sub_properties[subproperty_index].__set__(key, value)
+        self.__instance_keys[instance] = key
+
+        # Our stored value is the sub-property index
+        return subproperty_index

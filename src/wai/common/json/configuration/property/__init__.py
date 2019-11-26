@@ -1,6 +1,7 @@
 """
 Package for the different types of properties a JSON configuration can have.
 """
+from ._AllOfProperty import AllOfProperty
 from ._AnyOfProperty import AnyOfProperty
 from ._ArrayProperty import ArrayProperty
 from ._BoolProperty import BoolProperty
