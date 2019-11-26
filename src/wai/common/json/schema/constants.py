@@ -3,6 +3,7 @@ Module for constants related to JSON validation schema.
 """
 # Keywords
 ADDITIONAL_PROPERTIES_KEYWORD: str = "additionalProperties"  # The schema for validating any additional properties
+ALL_OF_KEYWORD: str = "allOf"  # For matching against all of a number of schema
 ANY_OF_KEYWORD: str = "anyOf"  # For matching against any one of a number of schema
 CONSTANT_KEYWORD: str = "const"  # For validating against a constant value
 DEFINITIONS_KEYWORD: str = "definitions"  # For defining reference schema

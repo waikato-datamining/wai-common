@@ -230,20 +230,7 @@ def one_of(*schema: JSONSchema) -> JSONSchema:
     :param schema:  The individual schema.
     :return:        The combined schema.
     """
-    # Must provide at least 2 schema
-    if len(schema) < 2:
-        raise JSONSchemaError("Can't use one_of with fewer than 2 sub-schema")
-
-    # Copy the schema into a list
-    schema = deep_copy(list(schema))
-
-    # Extract any definitions
-    definitions: JSONDefinitions = consolidate_definitions(*schema, pop=True)
-
-    return {
-        ONE_OF_KEYWORD: schema,
-        DEFINITIONS_KEYWORD: definitions
-    }
+    return _of(*schema, keyword=ONE_OF_KEYWORD)
 
 
 def any_of(*schema: JSONSchema) -> JSONSchema:
@@ -254,9 +241,31 @@ def any_of(*schema: JSONSchema) -> JSONSchema:
     :param schema:  The individual schema.
     :return:        The combined schema.
     """
+    return _of(*schema, keyword=ANY_OF_KEYWORD)
+
+
+def all_of(*schema: JSONSchema) -> JSONSchema:
+    """
+    Creates a schema which makes sure the value matches all of the
+    given schema.
+
+    :param schema:  The individual schema.
+    :return:        The combined schema.
+    """
+    return _of(*schema, keyword=ALL_OF_KEYWORD)
+
+
+def _of(*schema: JSONSchema, keyword: str) -> JSONSchema:
+    """
+    Common implementation for one_of/any_of/all_of.
+
+    :param schema:  The individual schema.
+    :param keyword: The schema keyword.
+    :return:        The combined schema.
+    """
     # Must provide at least 2 schema
     if len(schema) < 2:
-        raise JSONSchemaError("Can't use one_of with fewer than 2 sub-schema")
+        raise JSONSchemaError(f"Can't use {keyword} with fewer than 2 sub-schema")
 
     # Copy the schema into a list
     schema = deep_copy(list(schema))
@@ -265,6 +274,6 @@ def any_of(*schema: JSONSchema) -> JSONSchema:
     definitions: JSONDefinitions = consolidate_definitions(*schema, pop=True)
 
     return {
-        ANY_OF_KEYWORD: schema,
+        keyword: schema,
         DEFINITIONS_KEYWORD: definitions
     }
