@@ -8,7 +8,7 @@ from ._Property import Property
 from ._DummyInstance import DummyInstance
 
 
-class MapProxy(JSONValidatedBiserialisable['ArrayProxy'], ABC):
+class MapProxy(JSONValidatedBiserialisable['MapProxy'], ABC):
     """
     Class which acts like a map, but validates its elements using a property.
     """
