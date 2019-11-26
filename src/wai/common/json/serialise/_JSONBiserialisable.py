@@ -1,5 +1,3 @@
-import io
-
 from ._JSONSerialisable import JSONSerialisable
 from ._JSONDeserialisable import JSONDeserialisable, T
 from ._error import JSONSerialiseError
