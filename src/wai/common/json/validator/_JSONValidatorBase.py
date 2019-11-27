@@ -45,8 +45,11 @@ class JSONValidatorBase(ABC):
         :param raw_json:    The raw JSON to validate.
         """
         try:
+            # Get the jsonschema validator
+            validator = self.get_validator()
+
             # Perform schema validation
-            jsonschema.validate(raw_json, self.get_json_validation_schema())
+            validator.validate(raw_json)
 
             # Perform special validation
             self.perform_special_json_validation(raw_json)
@@ -107,6 +110,26 @@ class JSONValidatorBase(ABC):
         :return:        The schema.
         """
         pass
+
+    @staticmethod
+    def get_validator(self):
+        """
+        Gets the jsonschema validator to use to perform JSON validation.
+
+        :param self:    The validator instance/class.
+        :return:        The jsonschema validator.
+        """
+        # Get our schema
+        schema: JSONSchema = self.get_json_validation_schema()
+
+        # Get the validator class
+        validator_type = jsonschema.validators.validator_for(schema)
+
+        # Check the schema is valid
+        validator_type.check_schema(schema)
+
+        # Create the instance
+        return validator_type(schema)
 
     @staticmethod
     def clone_json_validation_schema(self) -> JSONSchema:

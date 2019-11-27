@@ -29,6 +29,9 @@ class JSONValidatorInstance(JSONValidatorBase, ABC):
     def get_json_validation_schema(self) -> JSONSchema:
         pass
 
+    def get_validator(self):
+        return JSONValidatorBase.get_validator(self)
+
     def clone_json_validation_schema(self) -> JSONSchema:
         return JSONValidatorBase.clone_json_validation_schema(self)
 

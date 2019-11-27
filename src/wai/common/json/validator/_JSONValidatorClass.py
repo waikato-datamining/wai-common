@@ -38,6 +38,10 @@ class JSONValidatorClass(JSONValidatorInstance, ABC):
         pass
 
     @classmethod
+    def get_validator(cls):
+        return JSONValidatorBase.get_validator(cls)
+
+    @classmethod
     def clone_json_validation_schema(cls) -> JSONSchema:
         return JSONValidatorBase.clone_json_validation_schema(cls)
 
