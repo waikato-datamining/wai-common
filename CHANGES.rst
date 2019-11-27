@@ -136,3 +136,4 @@ Changelog
 -------------------
 
 - Reworking of JSON configurations to unify value setting between internal and JSON values.
+- Adding caching of non-varying calculated attributes to improve serialisation time.

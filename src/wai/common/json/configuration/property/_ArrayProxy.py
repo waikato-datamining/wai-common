@@ -1,5 +1,6 @@
 from abc import abstractmethod, ABC
 from typing import Iterable, Optional, List, Callable, Any, Iterator
+import functools
 
 from ..._typing import RawJSONElement
 from ...serialise import JSONValidatedBiserialisable, JSONSerialisable
@@ -69,6 +70,11 @@ class ArrayProxy(JSONValidatedBiserialisable['ArrayProxy'], ABC):
             cls.element_property().__set__(key, value)
 
         return instance
+
+    @classmethod
+    @functools.lru_cache(maxsize=None)
+    def get_validator(cls):
+        return super().get_validator()
 
     @classmethod
     def get_json_validation_schema(cls) -> JSONSchema:

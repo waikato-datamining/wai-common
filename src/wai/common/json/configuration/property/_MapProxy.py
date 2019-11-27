@@ -1,3 +1,4 @@
+import functools
 from abc import abstractmethod, ABC
 from typing import Iterable, Optional, Dict, Union, Mapping
 
@@ -12,7 +13,9 @@ class MapProxy(JSONValidatedBiserialisable['MapProxy'], ABC):
     """
     Class which acts like a map, but validates its elements using a property.
     """
-    def __init__(self, initial_values: Optional[Union[Iterable, Mapping]] = None, **kwargs):
+    def __init__(self,
+                 initial_values: Optional[Union[Iterable, Mapping]] = None,
+                 **kwargs):
         # The references to the list elements in the sub-property
         self.__key_map: Dict[str, DummyInstance] = {}
 
@@ -47,6 +50,11 @@ class MapProxy(JSONValidatedBiserialisable['MapProxy'], ABC):
             cls.value_property().__set__(key, value)
 
         return instance
+
+    @classmethod
+    @functools.lru_cache(maxsize=None)
+    def get_validator(cls):
+        return super().get_validator()
 
     @classmethod
     def get_json_validation_schema(cls) -> JSONSchema:

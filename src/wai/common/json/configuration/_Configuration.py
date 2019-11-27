@@ -47,15 +47,11 @@ class Configuration(JSONValidatedBiserialisable[T], ABC):
             property.__set__(self, initial_value)
 
         # Treat remaining initial values as additional properties
-        self._additional_properties = self._init_additional_properties(**initial_values)
+        self._additional_properties = self._get_additional_properties_class()(**initial_values)
 
     @classmethod
-    def _init_additional_properties(cls, **initial_values):
-        """
-        Initialises the additional-properties storage for this configuration.
-
-        :param initial_values:  The initial values that weren't explicit properties.
-        """
+    @functools.lru_cache(maxsize=None)
+    def _get_additional_properties_class(cls) -> Type[MapProxy]:
         # Create the closure of the sub-property
         sub_property: Property = cls.additional_properties_validation()
 
@@ -65,8 +61,7 @@ class Configuration(JSONValidatedBiserialisable[T], ABC):
             def value_property(cls) -> Property:
                 return sub_property
 
-        # Create the storage
-        return AdditionalPropertiesProxy(**initial_values)
+        return AdditionalPropertiesProxy
 
     def __getattr__(self, item: str):
         # Return the value of the additional property if present
@@ -111,11 +106,13 @@ class Configuration(JSONValidatedBiserialisable[T], ABC):
         return cls(**raw_json)
 
     @classmethod
-    def get_json_validation_schema(cls) -> JSONSchema:
-        # Get the cached version if possible
-        if cls in Configuration.__schema_cache:
-            return Configuration.__schema_cache[cls]
+    @functools.lru_cache(maxsize=None)
+    def get_validator(cls):
+        return super().get_validator()
 
+    @classmethod
+    @functools.lru_cache(maxsize=None)
+    def get_json_validation_schema(cls) -> JSONSchema:
         # Get the properties of this configuration type
         properties: Dict[str, Property] = cls.get_all_properties(True)
 
@@ -141,12 +138,10 @@ class Configuration(JSONValidatedBiserialisable[T], ABC):
                                              optional_properties_schema,
                                              additional_properties=additional_properties_schema)
 
-        # Cache the schema
-        Configuration.__schema_cache[cls] = schema
-
         return schema
 
     @classmethod
+    @functools.lru_cache(maxsize=None)
     def get_all_properties(cls, with_property_names: bool = False) -> Dict[str, Property]:
         """
         Gets all properties of this configuration.

@@ -1,3 +1,4 @@
+import functools
 from abc import abstractmethod, ABC
 from typing import Any
 from weakref import WeakKeyDictionary
@@ -121,6 +122,10 @@ class Property(JSONValidatorInstance, ABC):
         # Make sure we are accessed via an instance
         if instance is None:
             raise AttributeError("Cannot access property through class (requires instance)")
+
+    @functools.lru_cache(maxsize=None)
+    def get_validator(self):
+        return super().get_validator()
 
     @abstractmethod
     def _value_as_raw_json(self, instance, value) -> RawJSONElement:
