@@ -137,3 +137,8 @@ Changelog
 
 - Reworking of JSON configurations to unify value setting between internal and JSON values.
 - Adding caching of non-varying calculated attributes to improve serialisation time.
+
+0.0.20 (2019-??-??)
+-------------------
+
+- Added area calculation to Polygon.
