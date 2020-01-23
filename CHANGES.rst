@@ -142,3 +142,8 @@ Changelog
 -------------------
 
 - Added extra methods to Polygon, Point.
+
+0.0.21 (2020-01-24)
+-------------------
+
+- Added logging utilities package, which utility for a standard root logger.
