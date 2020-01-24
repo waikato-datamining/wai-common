@@ -59,7 +59,7 @@ class FileReader(FileIOBase[DiskType, ObjectType, SelfType]):
 
         :return:        The loaded object.
         """
-        # Make sure wee have a file
+        # Make sure we have a file
         self.ensure_file()
 
         # If reading fails, ensure the file position remains unchanged
