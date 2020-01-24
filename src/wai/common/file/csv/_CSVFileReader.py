@@ -92,7 +92,7 @@ def estimate_types(sample: DATA_TYPE) -> List[Type[VALUE_TYPE]]:
 
             # Test if it converts to an int
             try:
-                    int(value)
+                int(value)
             except Exception:
                 # If not, test float
                 column_type = float
