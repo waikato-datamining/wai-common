@@ -6,6 +6,7 @@ Changelog
 
 - Added instanceoptionalmethod, a decorator for methods which take the class (always)
   and an instance (only if called from an instance).
+- Added LoggingMixin, which adds logging support to classes.
 
 0.0.21 (2020-01-24)
 -------------------

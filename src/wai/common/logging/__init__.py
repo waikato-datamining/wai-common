@@ -1,6 +1,7 @@
 """
 Package for logging utilities.
 """
+from ._LoggingMixin import LoggingMixin
 from ._standard_logger import (
     DEBUG_HANDLER_NAME,
     INFO_HANDLER_NAME,
