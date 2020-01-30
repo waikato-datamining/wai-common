@@ -1,4 +1,5 @@
 from functools import wraps
+from inspect import isclass
 
 
 class instanceoptionalmethod:
@@ -13,6 +14,17 @@ class instanceoptionalmethod:
     def __get__(self, instance, owner):
         @wraps(self._function)
         def intern(*args, **kwargs):
-            return self._function(owner, instance, *args, **kwargs)
+            return self._function(instance if instance is not None else owner, *args, **kwargs)
 
         return intern
+
+    @staticmethod
+    def is_instance(self) -> bool:
+        """
+        Checks if the given reference is an instance or a class.
+
+        :param self:    The instance/class reference.
+        :return:        True if the reference is an instance,
+                        False if it is a class.
+        """
+        return not isclass(self)
