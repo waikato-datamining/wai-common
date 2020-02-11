@@ -8,6 +8,7 @@ Changelog
   either the class or an instance, and take whichever they are called from as their
   first argument.
 - Added LoggingMixin, which adds logging support to classes.
+- Added serialisation utilities.
 
 0.0.21 (2020-01-24)
 -------------------
