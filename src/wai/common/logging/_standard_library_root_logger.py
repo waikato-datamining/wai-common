@@ -13,8 +13,10 @@ def create_standard_library_root_logger(library_root_package: str) -> logging.Lo
     # Get the logger for the package
     library_root_logger: logging.Logger = logging.getLogger(library_root_package)
 
-    # Add a null-handler to it if it doesn't have any already
-    if len(library_root_logger.handlers) == 0:
+    # Check that the logger isn't already configured
+    if len(library_root_logger.handlers) > 0:
+        library_root_logger.warning(f"Attempted to reconfigure library root logger '{library_root_package}'")
+    else:
         library_root_logger.addHandler(logging.NullHandler())
 
     return library_root_logger
