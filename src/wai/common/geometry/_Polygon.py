@@ -16,6 +16,20 @@ class Polygon:
     def __str__(self):
         return f"[{', '.join(map(str, self.points))}]"
 
+    def is_degenerate(self) -> bool:
+        """
+        Whether this polygon is degenerate.
+        """
+        # A polygon with 0, 1 or 2 points is degenerate
+        if len(self.points) < 3:
+            return True
+
+        # A closed polygon with 3 points really only has 2
+        if len(self.points) == 3 and self.is_closed():
+            return True
+
+        return False
+
     def area(self) -> float:
         """
         Calculates the area of the polygon using Greene's theorem.
