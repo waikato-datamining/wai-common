@@ -9,11 +9,12 @@ Changelog
   first argument.
 - Added LoggingMixin, which adds logging support to classes.
 - Added serialisation utilities.
+- Added utility for a standard library logger.
 
 0.0.21 (2020-01-24)
 -------------------
 
-- Added logging utilities package, which utility for a standard root logger.
+- Added logging utilities package, with utility for a standard root logger.
 
 0.0.20 (2019-12-16)
 -------------------

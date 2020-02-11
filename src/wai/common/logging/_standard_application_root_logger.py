@@ -60,7 +60,7 @@ def create_standard_handler(std_out: bool,
     return handler
 
 
-def create_standard_logger() -> logging.Logger:
+def create_standard_application_root_logger() -> logging.Logger:
     """
     Sets up a standard root logger and returns it. If the root
     logger has already been configured, issues a warning but leaves
