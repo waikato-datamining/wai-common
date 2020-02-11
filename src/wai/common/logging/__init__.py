@@ -2,6 +2,7 @@
 Package for logging utilities.
 """
 from ._LoggingMixin import LoggingMixin
+from ._root_logger import root_logger
 from ._standard_application_root_logger import (
     DEBUG_HANDLER_NAME,
     INFO_HANDLER_NAME,
