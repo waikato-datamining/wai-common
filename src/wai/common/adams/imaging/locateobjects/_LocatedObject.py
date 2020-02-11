@@ -1,10 +1,11 @@
 from typing import Dict, Any, Optional, List
 
 from ....geometry import Rectangle, Polygon, Point
+from ....logging import LoggingMixin
 from . import constants
 
 
-class LocatedObject:
+class LocatedObject(LoggingMixin):
     """
     Container for meta-data about located objects.
     """
@@ -58,7 +59,7 @@ class LocatedObject:
             try:
                 return int(index_string)
             except Exception:
-                pass
+                self.logger.exception(f"Error parsing index string '{index_string}'")
 
         return -1
 
@@ -138,8 +139,9 @@ class LocatedObject:
 
         # Try to parse the coordinates
         try:
-            return list(map(int, str(self.metadata[key]).split(",")))
-        except Exception:
+            return list(map(round, map(float, str(self.metadata[key]).split(","))))
+        except Exception as e:
+            self.logger.exception(f"Error parsing polygon coordinates for {key}")
             return []
 
     def get_polygon_x(self) -> List[int]:
