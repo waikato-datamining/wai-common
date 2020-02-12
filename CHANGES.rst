@@ -1,7 +1,7 @@
 Changelog
 =========
 
-0.0.22 (2020-??-??)
+0.0.22 (2020-02-12)
 -------------------
 
 - Added instanceoptionalmethod, a decorator for methods which can be called from
