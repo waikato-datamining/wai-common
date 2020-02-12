@@ -5,6 +5,7 @@ Changelog
 -------------------
 
 - Added dynamic defaults.
+- Added function to get the kwargs that are supplied to a function (non-default).
 
 0.0.22 (2020-02-12)
 -------------------

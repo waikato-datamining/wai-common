@@ -5,3 +5,4 @@ from ._functions import has_been_overridden, get_class_from_function, is_class_f
 from ._instanceoptionalmethod import instanceoptionalmethod
 from ._InstanceProperty import InstanceProperty
 from ._metadata import with_metadata, get_metadata, has_metadata
+from ._non_default_kwargs import non_default_kwargs
