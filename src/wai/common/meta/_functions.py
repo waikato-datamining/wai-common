@@ -1,5 +1,7 @@
 import inspect
-from typing import Optional, Callable
+from typing import Optional, Dict, Any
+
+from .typing import AnyCallable
 
 
 def has_been_overridden(function, obj) -> bool:
@@ -106,7 +108,7 @@ def unbind(method):
     return method.__func__
 
 
-def does_not_raise(func: Callable, *args, **kwargs) -> bool:
+def does_not_raise(func: AnyCallable, *args, **kwargs) -> bool:
     """
     Calls the given function with the given arguments, and reports
     whether it raised an exception or not.
@@ -123,3 +125,25 @@ def does_not_raise(func: Callable, *args, **kwargs) -> bool:
         return False
 
     return True
+
+
+def all_as_kwargs(function: AnyCallable, *args, **kwargs) -> Dict[str, Any]:
+    """
+    Gets a dictionary of the arguments that would be passed to the
+    given function by name, resolving positional arguments into
+    keyword arguments.
+
+    :param function:    The function.
+    :param args:        The positional arguments to the function.
+    :param kwargs:      The keyword arguments to the function.
+    :return:            All arguments to the function, keyed by parameter name.
+                        Includes defaults.
+    """
+    # Get the function's signature
+    signature = inspect.signature(function)
+
+    # Apply the given arguments and defaults
+    binding: inspect.BoundArguments = signature.bind(*args, **kwargs)
+    binding.apply_defaults()
+
+    return dict(binding.arguments)
