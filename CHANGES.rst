@@ -6,6 +6,8 @@ Changelog
 
 - Added dynamic defaults.
 - Added function to get the kwargs that are supplied to a function (non-default).
+- Added decorator ensure_error_type which wraps exceptions not of a particular
+  type in that type.
 
 0.0.22 (2020-02-12)
 -------------------
