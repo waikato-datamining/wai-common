@@ -1,10 +1,10 @@
 from abc import ABC
 
-from ..validator import JSONValidatorClass
-from ._JSONBiserialisable import JSONBiserialisable, T
+from ..validator import JSONValidator
+from ._JSONBiserialisable import JSONBiserialisable, SelfType
 
 
-class JSONValidatedBiserialisable(JSONValidatorClass, JSONBiserialisable[T], ABC):
+class JSONValidatedBiserialisable(JSONValidator, JSONBiserialisable[SelfType], ABC):
     """
     Utility interface that specifies that a class is both biserialisable
     with JSON and that that JSON is validated.

@@ -4,12 +4,11 @@ based on some parameters.
 """
 from typing import Dict, Set, Optional, Union
 
-from ._error import JSONSchemaError
+from ..error import JSONSchemaError
+from ..raw import deep_copy, RawJSONPrimitive, RawJSONNumber
 from ._typing import JSONSchema
-from .._typing import RawJSONNumber, RawJSONPrimitive
 from .constants import *
 from ._definitions import consolidate_definitions, JSONDefinitions
-from .._deep_copy import deep_copy
 
 
 def string_schema(min_length: Optional[int] = None,
@@ -37,13 +36,13 @@ def string_schema(min_length: Optional[int] = None,
     # Add the minimum length if given
     if min_length is not None:
         if min_length < 0:
-            raise ValueError(f"min_length must be non-negative if given, got {min_length}")
+            raise JSONSchemaError(f"min_length must be non-negative if given, got {min_length}")
         schema[MIN_LENGTH_KEYWORD] = min_length
 
     # Add the maximum length if given
     if max_length is not None:
         if max_length < 0:
-            raise ValueError(f"max_length must be non-negative if given, got {max_length}")
+            raise JSONSchemaError(f"max_length must be non-negative if given, got {max_length}")
         schema[MAX_LENGTH_KEYWORD] = max_length
 
     # Add the pattern if given

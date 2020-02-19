@@ -2,21 +2,22 @@ import json
 from abc import abstractmethod
 from typing import TypeVar, Generic, IO
 
-from ._error import JSONSerialiseError
-from .._typing import RawJSONElement
-from ..validator import JSONValidatorClass
+from ...decorator import ensure_error_type
+from ..error import JSONSerialisationError
+from ..raw import RawJSONElement
+from ..validator import JSONValidator
 
-# The type of the serialisable object
-T = TypeVar("T", bound="JSONDeserialisable")
+# The type of the object that is deserialised
+SelfType = TypeVar("SelfType", bound="JSONDeserialisable")
 
 
-class JSONDeserialisable(Generic[T]):
+class JSONDeserialisable(Generic[SelfType]):
     """
-    Interface class for objects which can deserialise themselves from JSON.
+    Interface for classes which can deserialise instances from JSON.
     """
     @classmethod
     @abstractmethod
-    def _deserialise_from_raw_json(cls, raw_json: RawJSONElement) -> T:
+    def _deserialise_from_raw_json(cls, raw_json: RawJSONElement) -> SelfType:
         """
         Implements the actual deserialisation from JSON.
 
@@ -26,61 +27,57 @@ class JSONDeserialisable(Generic[T]):
         pass
 
     @classmethod
-    def from_raw_json(cls, raw_json: RawJSONElement) -> T:
+    @ensure_error_type(JSONSerialisationError, "Error deserialising raw JSON {raw_json}: {0}")
+    def from_raw_json(cls, raw_json: RawJSONElement, validate: bool = True) -> SelfType:
         """
         Instantiates an object of this type from a raw JSON element.
 
         :param raw_json:    The raw JSON element.
+        :param validate:    Whether to validate the JSON before deserialisation.
         :return:            The object instance.
         """
-        try:
-            # Validate the raw JSON if we are capable
-            if issubclass(cls, JSONValidatorClass):
-                cls.validate_raw_json(raw_json)
+        # Validate the raw JSON if we are capable
+        if validate and issubclass(cls, JSONValidator):
+            cls.validate_raw_json(raw_json)
 
-            # Deserialise
-            return cls._deserialise_from_raw_json(raw_json)
-        except Exception as e:
-            raise JSONSerialiseError("Error dumping JSON to string") from e
+        # Deserialise
+        return cls._deserialise_from_raw_json(raw_json)
 
     @classmethod
-    def from_json_string(cls, json_string: str) -> T:
+    @ensure_error_type(JSONSerialisationError, "Error deserialising JSON string '{json_string}': {0}")
+    def from_json_string(cls, json_string: str, validate: bool = True) -> SelfType:
         """
         Instantiates an object of this type from a JSON-format string.
 
         :param json_string:     The JSON-format string to parse.
+        :param validate:        Whether to validate the JSON before deserialisation.
         :return:                The object instance.
         """
-        try:
-            raw_json = json.loads(json_string)
-        except Exception as e:
-            raise JSONSerialiseError(f"Error parsing JSON string: {json_string}") from e
+        raw_json = json.loads(json_string)
 
-        return cls.from_raw_json(raw_json)
+        return cls.from_raw_json(raw_json, validate)
 
     @classmethod
-    def read_from_stream(cls, stream: IO[str]) -> T:
+    @ensure_error_type(JSONSerialisationError, "Error reading JSON from stream: {0}")
+    def read_json_from_stream(cls, stream: IO[str], validate: bool = True) -> SelfType:
         """
         Instantiates an object of this type from the given string-stream.
 
-        :param stream:  The stream to read from.
-        :return:        The object instance.
+        :param stream:      The stream to read from.
+        :param validate:    Whether to validate the JSON before deserialisation.
+        :return:            The object instance.
         """
-        try:
-            return cls.from_raw_json(json.load(stream))
-        except Exception as e:
-            raise JSONSerialiseError("Error reading state from stream") from e
+        return cls.from_raw_json(json.load(stream), validate)
 
     @classmethod
-    def load_from_json_file(cls, filename: str) -> T:
+    @ensure_error_type(JSONSerialisationError, "Error loading JSON from file '{filename}': {0}")
+    def load_json_from_file(cls, filename: str, validate: bool = True) -> SelfType:
         """
         Loads an instance of this class from the given file.
 
         :param filename:    The name of the file to load from.
+        :param validate:    Whether to validate the JSON before deserialisation.
         :return:            The instance.
         """
-        try:
-            with open(filename, 'r') as file:
-                return cls.read_from_stream(file)
-        except Exception as e:
-            raise JSONSerialiseError(f"Could not load from JSON file '{filename}'") from e
+        with open(filename, 'r') as file:
+            return cls.read_json_from_stream(file, validate)

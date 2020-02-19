@@ -2,6 +2,7 @@
 Module for reusable JSON schema definitions and references to them.
 Also provides tools for relative JSON pointer syntax.
 """
+from ..error import SchemaDefinitionRedefined
 from .constants import *
 from ._static import NULL_SCHEMA, BOOL_SCHEMA, FLOAT_SCHEMA, STRING_SCHEMA
 from ._typing import JSONSchema, JSONDefinitions
@@ -67,8 +68,7 @@ def consolidate_definitions(*schemata: JSONSchema, pop: bool = False) -> JSONDef
         extracted_definitions = extract_definitions(schema, pop)
         for definition_name, definition in extracted_definitions.items():
             if definition_name in consolidated_definitions and consolidated_definitions[definition_name] != definition:
-                raise ValueError(f"Error composing definitions: definition '{definition_name}' "
-                                 f"defined more than once")
+                raise SchemaDefinitionRedefined(definition_name, consolidated_definitions[definition_name], definition)
             consolidated_definitions[definition_name] = definition
 
     return consolidated_definitions
