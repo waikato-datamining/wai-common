@@ -1,5 +1,5 @@
-from functools import wraps
-from inspect import isclass
+from inspect import isclass, ismethod
+from types import MethodType
 from typing import Type, TypeVar, Union
 
 # Type variable for the instance type
@@ -16,11 +16,8 @@ class instanceoptionalmethod:
         self._function = function
 
     def __get__(self, instance, owner):
-        @wraps(self._function)
-        def intern(*args, **kwargs):
-            return self._function(instance if instance is not None else owner, *args, **kwargs)
-
-        return intern
+        # Bind the function to the instance/class
+        return MethodType(self._function, instance if instance is not None else owner)
 
     @staticmethod
     def is_instance(self: Union[T, Type[T]]) -> bool:
@@ -45,3 +42,17 @@ class instanceoptionalmethod:
             return type(self)
 
         return self
+
+    @staticmethod
+    def will_fail_on_missing_instance(method: MethodType) -> bool:
+        """
+        Checks if the given "method" call will fail - i.e. the
+        "method" is not actually bound. This is useful for when
+        an instance-optional method is overridden by an instance-
+        required method, but an attempt may be made to call it
+        without an instance.
+
+        :return:    True if the method call will fail because it
+                    requires an instance which is not present.
+        """
+        return not ismethod(method)
