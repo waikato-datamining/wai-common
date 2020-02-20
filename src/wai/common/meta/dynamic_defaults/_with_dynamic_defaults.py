@@ -8,7 +8,7 @@ from ._dynamic_default import dynamic_default
 ReturnType = TypeVar("ReturnType")
 
 
-def with_dynamic_defaults(function: Callable[[Any, ...], ReturnType]):
+def with_dynamic_defaults(function: Callable[[Any], ReturnType]):
     """
     Decorator which processes dynamic defaults for the wrapped function.
 
