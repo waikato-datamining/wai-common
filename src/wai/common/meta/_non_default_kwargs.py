@@ -26,4 +26,5 @@ def non_default_kwargs(function, locals_) -> Dict[str, Any]:
     return {name: locals_[name]
             for name, parameter in function_signature.parameters.items()
             if parameter.kind == Parameter.KEYWORD_ONLY
+            and parameter.default is not Parameter.empty
             and locals_[name] is not parameter.default}
