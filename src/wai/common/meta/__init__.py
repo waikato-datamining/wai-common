@@ -1,6 +1,7 @@
 """
 Package for meta-programming constructs.
 """
+from ._fully_qualified_name import fully_qualified_name
 from ._functions import (
     has_been_overridden,
     get_class_from_function,

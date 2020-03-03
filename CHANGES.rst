@@ -5,6 +5,7 @@ Changelog
 -------------------
 
 - Added LazyDescriptor.
+- Added function to get the fully-qualified name of a class.
 
 0.0.24 (2020-02-21)
 -------------------
