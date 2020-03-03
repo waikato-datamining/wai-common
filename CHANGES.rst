@@ -9,6 +9,7 @@ Changelog
 - Added function to get the import code for a class.
 - Added ClassRegistry class.
 - Added meta-constants module.
+- Added command-line utilities.
 
 0.0.24 (2020-02-21)
 -------------------
