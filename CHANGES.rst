@@ -7,6 +7,7 @@ Changelog
 - Added LazyDescriptor.
 - Added function to get the fully-qualified name of a class.
 - Added function to get the import code for a class.
+- Added ClassRegistry class.
 
 0.0.24 (2020-02-21)
 -------------------

@@ -1,3 +1,4 @@
+from ._ClassRegistry import ClassRegistry
 from ._functions import is_hashable
 from ._Interval import Interval
 from ._InvalidStateError import InvalidStateError
