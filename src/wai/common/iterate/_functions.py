@@ -1,5 +1,5 @@
 from random import Random, shuffle
-from typing import Iterable, Iterator, Optional, Sequence, Tuple, List, Callable
+from typing import Iterable, Iterator, Optional, Sequence, Tuple, List, Any
 
 from .._typing import Predicate, T
 
@@ -140,3 +140,13 @@ def any_meets_predicate(iterable: Iterable[T], predicate: Predicate[T]) -> bool:
                         False if not.
     """
     return any(map(predicate, iterable))
+
+
+def count(iterable: Iterable[Any]) -> int:
+    """
+    Returns the number of items in the iterable by counting them.
+
+    :param iterable:    The iterable.
+    :return:            The number of items in the iterable.
+    """
+    return sum(1 for _ in iterable)
