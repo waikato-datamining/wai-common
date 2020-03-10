@@ -23,8 +23,14 @@ class ClassRegistryOption(Option):
         # Save our optionality
         self._optional: bool = not required if required is not ... else True
 
+        # Make sure there are some choices to choose from
+        minimum_required_choices = 1 if self._optional else 2
+        choices = tuple(registry.aliases())
+        if len(choices) < minimum_required_choices:
+            raise ValueError("Not enough choices")
+
         super().__init__(*flags,
-                         choices=tuple(registry.aliases()),
+                         choices=choices,
                          **non_default_kwargs(ClassRegistryOption.__init__, locals()))
 
     def _namespace_value_to_internal_value(self, namespace_value: Optional[str]) -> Optional[type]:
