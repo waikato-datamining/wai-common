@@ -71,6 +71,8 @@ class TypedOption(Option):
 
         # Extract the set of keyword arguments
         kwargs = non_default_kwargs(TypedOption.__init__, locals())
+        if "default" in kwargs:
+            kwargs.pop("default")
 
         super().__init__(*flags, default=formatted_default, **kwargs)
 
