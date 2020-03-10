@@ -17,7 +17,7 @@ class OptionValueHandler(OptionHandler):
 
         :return:    The namespace.
         """
-        raise NotImplementedError(OptionValueHandler.namespace)
+        raise NotImplementedError("OptionValueHandler.namespace")
 
     def get_option_value(self, option: Union[str, Option]) -> Any:
         """
