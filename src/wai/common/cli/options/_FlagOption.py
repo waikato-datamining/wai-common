@@ -21,17 +21,21 @@ class FlagOption(Option):
 
         self._invert: bool = invert
 
-    def _validate_value(self, value: Any) -> bool:
+    def _namespace_value_to_internal_value(self, namespace_value: Any) -> bool:
+        return namespace_value
+
+    def _internal_value_to_namespace_value(self, internal_value: Any) -> bool:
+        return internal_value
+
+    def _namespace_value_to_options_list(self, namespace_value: Any) -> OptionsList:
+        # Flag should be present if value is True XOR invert is True
+        return [self.flags[0]] if namespace_value != self._invert else []
+
+    def _validate_internal_value(self, value: Any):
         # Make sure the value is boolean
         if not isinstance(value, bool):
             raise TypeError(f"Flag options only take boolean values, not {value}")
 
-        return value
-
-    def _options_list_from_current_value(self, value: bool) -> OptionsList:
-        # Flag should be present if value is True XOR invert is True
-        return [self.flags[0]] if value != self._invert else []
-
-    def _parse_raw_namespace_value(self, value: bool) -> bool:
-        # raw namespace value is already correct
-        return value
+    def _validate_namespace_value(self, namespace_value: Any):
+        if not isinstance(namespace_value, bool):
+            raise ValueError(f"Flag option expects boolean namespace value but got {namespace_value}")

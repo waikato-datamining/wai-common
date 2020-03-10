@@ -224,8 +224,24 @@ class Option(ArgumentParserConfigurer, ABC):
         if not isinstance(instance, OptionValueHandler):
             raise TypeError(f"Instance '{instance}' is not an option-value handler")
 
-        # Get the option's value
-        return getattr(instance.namespace, self.name)
+        # Get the option's value from the namespace
+        namespace_value = getattr(instance.namespace, self.name)
+
+        # Validate the namespace value
+        self._validate_namespace_value(namespace_value)
+
+        return self._namespace_value_to_internal_value(namespace_value)
+
+    @abstractmethod
+    def _namespace_value_to_internal_value(self, namespace_value: Any) -> Any:
+        """
+        Converts the namespace value for this option into its internal type.
+
+        :param namespace_value:     The option's value from the namespace.
+        :return:                    The option's internal value.
+        :raises Exception:          If the namespace value is invalid.
+        """
+        pass
 
     def __set__(self, instance, value):
         # Must have a name set to access the namespace
@@ -237,20 +253,32 @@ class Option(ArgumentParserConfigurer, ABC):
             raise TypeError(f"Instance '{instance}' is not an option-value handler")
 
         # Make sure the value is valid
-        value = self._validate_value(value)
+        self._validate_internal_value(value)
+
+        # Convert to a namespace value
+        namespace_value = self._internal_value_to_namespace_value(value)
 
         # Set the option's value
-        setattr(instance.namespace, self.name, value)
+        setattr(instance.namespace, self.name, namespace_value)
 
     @abstractmethod
-    def _validate_value(self, value: Any) -> Any:
+    def _validate_internal_value(self, internal_value: Any):
         """
-        Validate's the given value when trying to set the value
-        of this option.
+        Checks that the internal value is valid.
 
-        :param value:       The value attempting to be set.
-        :return:            The actual value that should be set.
-        :raises Exception:  If the value cannot be validated.
+        :param internal_value:  The value to check.
+        """
+        pass
+
+    @abstractmethod
+    def _internal_value_to_namespace_value(self, internal_value: Any) -> Any:
+        """
+        Converts an internal value for this option into a namespace
+        value.
+
+        :param internal_value:  The value attempting to be set.
+        :return:                The actual value that should be set.
+        :raises Exception:      If the value cannot be validated.
         """
         pass
 
@@ -262,23 +290,37 @@ class Option(ArgumentParserConfigurer, ABC):
         :return:            The options-list representation.
         """
         # Make sure we have flags to use
-        self._require_flags("Can't get option value as option list before flags are assigned")
+        self._require_name("Can't get option value as option list before the option has been bound")
 
-        # Get the current value of the option
-        value = self.__get__(instance, type(instance))
+        # The instance must be an option-value handler
+        from .._OptionValueHandler import OptionValueHandler
+        if not isinstance(instance, OptionValueHandler):
+            raise TypeError(f"Instance '{instance}' is not an option-value handler")
 
-        # Make sure the value is valid (in case the namespace has been altered)
-        value = self._validate_value(value)
+        # Get the namespace value of the option
+        namespace_value = getattr(instance.namespace, self.name)
+
+        # Validate the namespace value
+        self._validate_namespace_value(namespace_value)
 
         # Let the sub-type format the options-list from the value
-        return self._options_list_from_current_value(value)
+        return self._namespace_value_to_options_list(namespace_value)
 
     @abstractmethod
-    def _options_list_from_current_value(self, value: Any) -> OptionsList:
+    def _validate_namespace_value(self, namespace_value: Any):
         """
-        Converts the value of this option into an options list.
+        Checks the namespace value is valid.
 
-        :param value:   The current value of the option.
+        :param namespace_value: The namespace value to check.
+        """
+        pass
+
+    @abstractmethod
+    def _namespace_value_to_options_list(self, namespace_value: Any) -> OptionsList:
+        """
+        Converts the namespace value of this option into an options list.
+
+        :param value:   The namespace value of the option.
         :return:        The options-list representation of the value.
         """
         pass
@@ -293,30 +335,22 @@ class Option(ArgumentParserConfigurer, ABC):
         # Must have a name set to access the namespace
         self._require_name("Can't set the value via options-list until the option is bound")
 
+        # The instance must be an option-value handler
+        from .._OptionValueHandler import OptionValueHandler
+        if not isinstance(instance, OptionValueHandler):
+            raise TypeError(f"Instance '{instance}' is not an option-value handler")
+
         # Get a parser to parse the options list
         parser = self.get_configured_parser()
 
         # Parse the options list
         namespace = parser.parse_args(options_list)
 
-        # Get the raw value from the namespace
-        raw_value = getattr(namespace, self.name)
+        # Get the namespace value
+        namespace_value = getattr(namespace, self.name)
 
-        # Parse the raw value
-        value = self._parse_raw_namespace_value(raw_value)
-
-        # Set the value
-        self.__set__(instance, value)
-
-    @abstractmethod
-    def _parse_raw_namespace_value(self, value: Any) -> Any:
-        """
-        Parse the raw value in the namespace into the internal type.
-
-        :param value:   The raw value.
-        :return:        The parsed value.
-        """
-        pass
+        # Set it on the instance's namespace
+        setattr(instance.namespace, self.name, namespace_value)
 
     # ===== #
     # OTHER #

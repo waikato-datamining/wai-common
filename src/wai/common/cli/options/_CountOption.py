@@ -29,22 +29,15 @@ class CountOption(Option):
 
         self._translations: Optional[TranslationDictPair] = create_translation_pair(translation)
 
-    def _validate_value(self, value: Any) -> int:
-        # Value must be an integer
-        if not isinstance(value, int):
-            raise TypeError(f"Count options take integer values, not {value}")
+    def _namespace_value_to_internal_value(self, namespace_value: Any) -> int:
+        return translate_forward(namespace_value, self._translations)
 
-        # Make sure the value is reverse-translatable
-        translate_reverse(value, self._translations)
+    def _internal_value_to_namespace_value(self, value: Any) -> int:
+        return translate_reverse(value, self._translations)
 
-        return value
-
-    def _options_list_from_current_value(self, value: int) -> OptionsList:
-        # Get the count from the current value
-        count = translate_reverse(value, self._translations)
-
+    def _namespace_value_to_options_list(self, namespace_value: Any) -> OptionsList:
         # If count is 0, return no options
-        if count == 0:
+        if namespace_value == 0:
             return []
 
         # Try to use a short flag if available, otherwise just the first flag
@@ -56,10 +49,15 @@ class CountOption(Option):
 
         # Iterate the flag count times
         if short_flag:
-            return [SHORT_FLAG_PREFIX + selected_flag[1] * count]
+            return [SHORT_FLAG_PREFIX + selected_flag[1] * namespace_value]
         else:
-            return [selected_flag] * count
+            return [selected_flag] * namespace_value
 
-    def _parse_raw_namespace_value(self, value: int) -> int:
-        # Apply the translation if provided
-        return translate_forward(value, self._translations)
+    def _validate_internal_value(self, internal_value: Any):
+        # Value must be an integer
+        if not isinstance(internal_value, int):
+            raise TypeError(f"Count options take integer values, not {internal_value}")
+
+    def _validate_namespace_value(self, namespace_value: Any):
+        if not isinstance(namespace_value, int):
+            raise TypeError(f"Count options expect integer namespace values, not {namespace_value}")
