@@ -128,6 +128,10 @@ class Option(ArgumentParserConfigurer, ABC):
 
         # Can't reuse options (use a copy instead)
         if self._name != "":
+            # If assigning the same name (e.g. in generic base class), just ignore
+            if self._name == name:
+                return
+
             raise NameError(f"Can't reuse options; use a copy instead")
 
         # If no flags were specified, create one from the name

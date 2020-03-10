@@ -1,6 +1,12 @@
 Changelog
 =========
 
+0.0.26 (2020-03-11)
+-------------------
+
+- Fixed bug in Option descriptors which prevented them from working with generic
+  option-handlers in Python3.6.
+
 0.0.25 (2020-03-10)
 -------------------
 
