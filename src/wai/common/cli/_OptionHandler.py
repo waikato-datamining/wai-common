@@ -11,9 +11,6 @@ class OptionHandler(ArgumentParserConfigurer):
     """
     Super class for option-handling classes.
     """
-    # The registry of option handler classes
-    __registry: ClassRegistry = ClassRegistry()
-
     @classmethod
     def configure_parser(cls, parser: ArgumentParser):
         # Configure the parser with each option
@@ -120,9 +117,3 @@ class OptionHandler(ArgumentParserConfigurer):
             setattr(namespace, option.name, option._parse_raw_namespace_value(getattr(namespace, option.name)))
 
         return namespace
-
-    def __init_subclass__(cls, **kwargs):
-        super().__init_subclass__(**kwargs)
-
-        # Add the new sub-class to the registry
-        OptionHandler.__registry.register(cls)
