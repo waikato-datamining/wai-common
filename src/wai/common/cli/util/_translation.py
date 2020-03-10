@@ -3,6 +3,8 @@ Module for count-translation functionality for the CountOption class.
 """
 from typing import Optional, Dict, Tuple
 
+# TODO: Class-based implementation
+
 TranslationDict = Dict[int, int]
 TranslationDictPair = Tuple[TranslationDict, TranslationDict]
 
