@@ -320,8 +320,8 @@ class Option(ArgumentParserConfigurer, ABC):
         """
         Converts the namespace value of this option into an options list.
 
-        :param value:   The namespace value of the option.
-        :return:        The options-list representation of the value.
+        :param namespace_value:     The namespace value of the option.
+        :return:                    The options-list representation of the value.
         """
         pass
 
