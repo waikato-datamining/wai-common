@@ -1,9 +1,17 @@
 from typing import Dict, Set, Type, Optional, Iterator
 
-from .meta import fully_qualified_name
+from .meta import (
+    fully_qualified_name,
+    CodeRepresentable,
+    CodeRepresentation,
+    code_repr,
+    get_import_dict,
+    get_code,
+    combine_import_dicts
+)
 
 
-class ClassRegistry:
+class ClassRegistry(CodeRepresentable):
     """
     A registry of classes that can be looked up by name.
 
@@ -178,3 +186,28 @@ class ClassRegistry:
         """
         # TODO: Implementation
         raise NotImplementedError(ClassRegistry.attempt_class_import.__qualname__)
+
+    def code_repr(self) -> CodeRepresentation:
+        # Get the code-representations of all the types that are in the registry
+        aliased_types = {}
+        unaliased_types = []
+        for cls in self._qualname_lookup.values():
+            alias = self.get_alias(cls)
+            if alias is not None:
+                aliased_types[get_code(code_repr(alias))] = code_repr(cls)
+            else:
+                unaliased_types.append(code_repr(cls))
+
+        # Combine the import dictionaries of the ClassRegistry class and all registered classes
+        import_dict = combine_import_dicts(get_import_dict(code_repr(type(self))),
+                                           *map(get_import_dict, unaliased_types),
+                                           *map(get_import_dict, aliased_types.values()))
+
+        # Create the code representation for just unaliased types (using constructor)
+        code = f"ClassRegistry({', '.join(map(get_code, unaliased_types))})"
+
+        # Add the chained calls to 'alias' to add the aliased types
+        for alias, code_representation in aliased_types.items():
+            code += f".alias({get_code(code_representation)}, {alias})"
+
+        return import_dict, code
