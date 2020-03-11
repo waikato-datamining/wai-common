@@ -8,7 +8,8 @@ from ._CodeRepresentable import (
     code_repr,
     get_import_dict,
     get_code,
-    combine_import_dicts
+    combine_import_dicts,
+    from_init
 )
 from ._fully_qualified_name import fully_qualified_name
 from ._functions import (
