@@ -1,9 +1,10 @@
 """
 Functional interface to code representations.
 """
+from enum import Enum
 from typing import Optional, Any
 
-from ._builtins import type_code_repr
+from ._builtins import type_code_repr, enum_code_repr
 from ._CodeRepresentable import CodeRepresentable
 from ._error import IsNotCodeRepresentableType, CodeRepresentationError, IsNotCodeRepresentableValue
 from ._honorary_members import get_honorary_code_repr_function
@@ -29,6 +30,10 @@ def get_code_repr_function(cls: type) -> Optional[CodeReprFunction]:
     # Types are also code-representable
     if issubclass(cls, type):
         return type_code_repr
+
+    # Enumerations are also code representable
+    if issubclass(cls, Enum):
+        return enum_code_repr
 
     return None
 

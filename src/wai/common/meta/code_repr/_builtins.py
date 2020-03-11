@@ -1,6 +1,7 @@
 """
 Module for code_repr functions for builtin types.
 """
+from enum import Enum
 from typing import Tuple, Iterator, Callable, Any
 
 from .._import_code import get_import_code
@@ -142,3 +143,19 @@ def frozenset_code_repr(value: frozenset) -> CodeRepresentation:
                                "})",
                                ((el,) for el in value),
                                lambda el: el)
+
+
+def enum_code_repr(value: Enum):
+    """
+    The code_repr function for enumerations.
+
+    :param value:   The enum being represented.
+    :return:        The code representation of the enum.
+    """
+    # Get the enum type
+    enum_type = type(value)
+
+    # Get the import code for the enumeration
+    import_code = get_import_code(enum_type, alias_inner_class=False)
+
+    return {enum_type.__qualname__: import_code}, f"{enum_type.__qualname__}.{value.name}"
