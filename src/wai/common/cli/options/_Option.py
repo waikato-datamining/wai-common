@@ -1,19 +1,20 @@
 from abc import ABC, abstractmethod
 from argparse import Action, ArgumentParser
-from typing import Type, Union, Any, Iterable, Tuple, Dict, Set
+from typing import Type, Union, Any, Iterable, Tuple, Dict
 
 from ...meta import non_default_kwargs
+from ...meta.code_repr import CodeRepresentable, CodeRepresentation
 from ..util import is_flag_reason, is_short_flag, is_long_flag, flag_from_name
 from .._ArgumentParserConfigurer import ArgumentParserConfigurer
-from .._CLIRepresentable import CLIRepresentable
 from .._typing import OptionsList
 
 
-class Option(ArgumentParserConfigurer, ABC):
+class Option(CodeRepresentable, ArgumentParserConfigurer, ABC):
     """
     Descriptor class which sets an option on an option-handler.
     """
     def __init__(self,
+                 code_representation: CodeRepresentation,
                  *flags: str,
                  action: Union[str, Type[Action]] = ...,
                  nargs: Union[int, str] = ...,
@@ -29,11 +30,16 @@ class Option(ArgumentParserConfigurer, ABC):
         self._name: str = ""
         self._flags: Tuple[str] = flags
 
+        # Convert the default value if supplied
+        if default is not ...:
+            self._validate_internal_value(default)
+            default = self._internal_value_to_namespace_value(default)
+
         # Save any non-default arguments as kwargs
         self._kwargs: Dict[str, Any] = non_default_kwargs(Option.__init__, locals())
 
-        # The representation of the keyword arguments to the option's __init__ method
-        self._kwargs_repr: Dict[str, Any] = {}
+        # The code representation of the option
+        self._code_representation: CodeRepresentation = code_representation
 
     # =========== #
     # NAMES/FLAGS #
@@ -147,65 +153,12 @@ class Option(ArgumentParserConfigurer, ABC):
             if help is not None:
                 self._kwargs["help"] = help
 
-    # ============== #
-    # REPRESENTATION #
-    # ============== #
+    # =================== #
+    # CODE REPRESENTATION #
+    # =================== #
 
-    def __repr__(self) -> str:
-        # Get the representation of the kwargs to the __init__ method
-        kwargs_repr = ', '.join(f"{key}={self._type_repr(value)}" for key, value in self._kwargs_repr.items())
-        if kwargs_repr != "":
-            kwargs_repr = ", " + kwargs_repr
-
-        return f"{type(self).__qualname__}({self._flags_repr()}{kwargs_repr})"
-
-    def get_repr_imports(self) -> Set[Type]:
-        """
-        Gets the types that require importing to fulfil the representation.
-        """
-        return {value
-                for value in self._kwargs_repr.values()
-                if isinstance(value, type) and issubclass(value, CLIRepresentable)}
-
-    def _flags_repr(self) -> str:
-        """
-        Gets the representation of the flags to this option.
-
-        :return:    The representation of the flags.
-        """
-        return ', '.join(repr(flag) for flag in self._flags)
-
-    def _update_kwargs_repr(self, name: str, value: Any, condition: bool):
-        """
-        Updates the kwarg representation of this option if the condition is True.
-
-        :param name:        The name of the keyword argument.
-        :param value:       Its value.
-        :param condition:   The condition under which to do the update.
-        """
-        if condition:
-            self._kwargs_repr[name] = value
-
-    def copy(self) -> 'Option':
-        """
-        Creates a copy of this option.
-
-        :return:    The option copy.
-        """
-        return type(self)(*self._flags, **self._kwargs_repr)
-
-    @staticmethod
-    def _type_repr(value: Any) -> str:
-        """
-        Same a repr() but with a different implementation for types.
-
-        :param value:   The value to represent.
-        :return:        The representation.
-        """
-        if isinstance(value, type):
-            return value.__name__
-
-        return repr(value)
+    def code_repr(self) -> CodeRepresentation:
+        return self._code_representation
 
     # ====== #
     # VALUES #

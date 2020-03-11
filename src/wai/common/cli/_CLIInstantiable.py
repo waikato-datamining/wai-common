@@ -19,11 +19,11 @@ class CLIInstantiable(CLIRepresentable, OptionValueHandler):
     def namespace(self) -> Namespace:
         return self._namespace
 
-    def _cli_repr(self) -> str:
+    def cli_repr(self) -> str:
         return to_cli_string([cli_repr(type(self))] + self.to_options_list())
 
     @classmethod
-    def _from_cli_repr(cls, cli_string: str) -> 'CLIInstantiable':
+    def from_cli_repr(cls, cli_string: str) -> 'CLIInstantiable':
         # Split into class and option parts
         options_list = from_cli_string(cli_string)
 

@@ -1,8 +1,8 @@
 from typing import Optional, Any
 
+from ...meta.code_repr import CodeRepresentation, from_init
 from ..constants import SHORT_FLAG_PREFIX
-from ..util import is_short_flag, \
-    TranslationDict, TranslationDictPair, create_translation_pair, translate_forward, translate_reverse
+from ..util import is_short_flag, TranslationTable
 from .._typing import OptionsList
 from ._Option import Option
 
@@ -17,23 +17,25 @@ class CountOption(Option):
     """
     def __init__(self,
                  *flags: str,
-                 translation: Optional[TranslationDict] = None,
+                 translation: Optional[TranslationTable] = None,
                  help: str = ...):
-        super().__init__(*flags,
+        # Capture the code-representation of the option
+        code_representation: CodeRepresentation = from_init(self, locals())
+
+        # Create the translation pair
+        self._translation: Optional[TranslationTable] = translation
+
+        super().__init__(code_representation,
+                         *flags,
                          action="count",
-                         default=0,
+                         default=translation.translate_forward(0),
                          help=help)
 
-        self._update_kwargs_repr("translation", translation, translation is not None)
-        self._update_kwargs_repr("help", help, help is not ...)
-
-        self._translations: Optional[TranslationDictPair] = create_translation_pair(translation)
-
     def _namespace_value_to_internal_value(self, namespace_value: Any) -> int:
-        return translate_forward(namespace_value, self._translations)
+        return self._translation.translate_forward(namespace_value)
 
     def _internal_value_to_namespace_value(self, value: Any) -> int:
-        return translate_reverse(value, self._translations)
+        return self._translation.translate_reverse(value)
 
     def _namespace_value_to_options_list(self, namespace_value: Any) -> OptionsList:
         # If count is 0, return no options

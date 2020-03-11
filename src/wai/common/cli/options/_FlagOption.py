@@ -1,5 +1,6 @@
 from typing import Any
 
+from ...meta.code_repr import from_init, CodeRepresentation
 from .._typing import OptionsList
 from ._Option import Option
 
@@ -12,14 +13,16 @@ class FlagOption(Option):
                  *flags: str,
                  invert: bool = False,
                  help: str = ...):
-        super().__init__(*flags,
+        # Capture the code-representation of the option
+        code_representation: CodeRepresentation = from_init(self, locals())
+
+        # Save the invert flag
+        self._invert: bool = invert
+
+        super().__init__(code_representation,
+                         *flags,
                          action="store_false" if invert else "store_true",
                          help=help)
-
-        self._update_kwargs_repr("invert", invert, invert)
-        self._update_kwargs_repr("help", help, help is not ...)
-
-        self._invert: bool = invert
 
     def _namespace_value_to_internal_value(self, namespace_value: Any) -> bool:
         return namespace_value

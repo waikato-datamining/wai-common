@@ -11,10 +11,4 @@ from ._flags import (
     is_long_flag_reason,
     flag_from_name
 )
-from ._translation import (
-    TranslationDict,
-    TranslationDictPair,
-    create_translation_pair,
-    translate_forward,
-    translate_reverse
-)
+from ._translation import TranslationTable

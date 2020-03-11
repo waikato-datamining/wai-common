@@ -2,7 +2,8 @@ from argparse import REMAINDER
 from typing import Union, Any, Type, Iterable, Tuple, TypeVar, List
 
 from ...meta import non_default_kwargs
-from .._CLIRepresentable import CLIRepresentable, cli_repr, from_cli_repr
+from ...meta.code_repr import CodeRepresentation, from_init
+from .._CLIRepresentable import CLIRepresentable, cli_repr, from_cli_repr, is_cli_representable_type
 from .._typing import OptionsList
 from ._Option import Option
 
@@ -27,8 +28,11 @@ class TypedOption(Option):
                  required: bool = ...,
                  help: str = ...,
                  metavar: Union[str, Tuple[str, ...]] = ...):
+        # Capture the code-representation of the option
+        code_representation: CodeRepresentation = from_init(self, locals())
+
         # Check the type is CLI-representable
-        if not CLIRepresentable.type_check(type):
+        if not is_cli_representable_type(type):
             raise TypeError(f"Type {type.__qualname__} is not a CLI-representable type")
         self._type = type
 
@@ -64,21 +68,13 @@ class TypedOption(Option):
             choices = formatted_choices
 
         # Format default value
-        if default is not ...:
-            formatted_default = self._internal_value_to_namespace_value(default)
-        else:
-            formatted_default = [] if self._is_list_valued else None
+        if default is ... and self._optional:
+            default = [] if self._is_list_valued else None
 
         # Extract the set of keyword arguments
         kwargs = non_default_kwargs(TypedOption.__init__, locals())
-        if "default" in kwargs:
-            kwargs.pop("default")
 
-        super().__init__(*flags, default=formatted_default, **kwargs)
-
-        self._update_kwargs_repr("type", type, True)
-        for name, value in kwargs.items():
-            self._update_kwargs_repr(name, value, True)
+        super().__init__(code_representation, *flags, **kwargs)
 
     @property
     def type(self) -> Type[ClassType]:
@@ -97,8 +93,8 @@ class TypedOption(Option):
 
     def _internal_value_to_namespace_value(self, internal_value: Any) -> Any:
         if isinstance(internal_value, list):
-            return [cli_repr(cli_string) for cli_string in internal_value]
-        elif isinstance(internal_value, str):
+            return [cli_repr(value) for value in internal_value]
+        elif isinstance(internal_value, self._type):
             return cli_repr(internal_value)
         else:
             return None

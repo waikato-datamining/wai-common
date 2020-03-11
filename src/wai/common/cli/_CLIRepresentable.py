@@ -1,13 +1,13 @@
-from typing import TypeVar, Dict, Callable, Type, Tuple, Any, NoReturn
+from typing import TypeVar, Dict, Callable, Tuple, Any, NoReturn, Optional, Type
 
 from ..meta import fully_qualified_name
 
 # Generic type variable
 T = TypeVar("T")
 
-# The types of the '_cli_repr'/'_from_cli_repr' methods
-_CLI_REPR_METHOD_TYPE = Callable[[T], str]
-_FROM_CLI_REPR_METHOD_TYPE = Callable[[str], T]
+# The types of the 'cli_repr'/'from_cli_repr' methods
+CLI_REPR_METHOD_TYPE = Callable[[T], str]
+FROM_CLI_REPR_METHOD_TYPE = Callable[[str], T]
 
 
 # For use when honarary member methods aren't implemented (yet)
@@ -42,9 +42,8 @@ def type_from_cli_repr(cli_string: str) -> type:
     raise ImportError(f"Couldn't import class '{cli_string}'")
 
 
-# Honorary CLI-representable types and their '_cli_repr'/'_from_cli_repr' methods
-HONORARY_MEMBERS: Dict[Type[T], Tuple[_CLI_REPR_METHOD_TYPE, _FROM_CLI_REPR_METHOD_TYPE]] = {
-    type: (fully_qualified_name, type_from_cli_repr),
+# Honorary CLI-representable types and their 'cli_repr'/'from_cli_repr' methods
+HONORARY_MEMBERS: Dict[Type[T], Tuple[CLI_REPR_METHOD_TYPE[T], FROM_CLI_REPR_METHOD_TYPE[T]]] = {
     int: (repr, int),
     str: (repr, lambda cli_string: cli_string),
     float: (repr, float)
@@ -56,71 +55,138 @@ class CLIRepresentable:
     Interface for objects which can represent themselves
     as a value on the command-line.
     """
-    def _cli_repr(self) -> str:
+    def cli_repr(self) -> str:
         """
         Gets the CLI representation of this object.
 
         :return:        The CLI string.
         """
-        raise NotImplementedError(CLIRepresentable._cli_repr.__qualname__)
+        raise NotImplementedError(CLIRepresentable.cli_repr.__qualname__)
 
     @classmethod
-    def _from_cli_repr(cls, cli_string: str) -> 'CLIRepresentable':
+    def from_cli_repr(cls: Type[T], cli_string: str) -> T:
         """
         Gets an instance of the type from its CLI representation.
 
         :param cli_string:  The CLI representation.
         :return:            The instance.
         """
-        raise NotImplementedError(CLIRepresentable._from_cli_repr.__qualname__)
-
-    @staticmethod
-    def type_check(type_: type) -> bool:
-        """
-        Checks if the given type is CLI-representable.
-
-        :param type_:   The type to check.
-        :return:        True if the type is CLI-representable.
-        """
-        return issubclass(type_, CLIRepresentable) or type_ in HONORARY_MEMBERS
+        raise NotImplementedError(CLIRepresentable.from_cli_repr.__qualname__)
 
 
-def cli_repr(value) -> str:
+def get_cli_repr_functions(cls: Type[T]) -> Optional[Tuple[CLI_REPR_METHOD_TYPE[T], FROM_CLI_REPR_METHOD_TYPE[T]]]:
+    """
+    Gets the cli_repr/from_cli_repr functions for a given type.
+
+    :param cls:     The type to get the functions for.
+    :return:        The pair of functions, or None if none available.
+    """
+    # See if the type is an honorary member
+    if cls in HONORARY_MEMBERS:
+        return HONORARY_MEMBERS[cls]
+
+    # If the class inherits from CLIRepresentable, return its cli_repr method
+    if issubclass(cls, CLIRepresentable):
+        return cls.cli_repr, cls.from_cli_repr
+
+    # If the class is a meta-class (i.e. it's values are classes),
+    # then represent it by it's fully-qualified name, and parse
+    # it by importing it
+    if issubclass(cls, type):
+        return fully_qualified_name, type_from_cli_repr
+
+    return None
+
+
+def get_cli_repr_function(value: T) -> Optional[CLI_REPR_METHOD_TYPE[T]]:
+    """
+    Gets the function to call to get the CLI representation of a value.
+
+    :param value:   The value to get the cli_repr function for.
+    :return:        The cli_repr function, or None if none available.
+    """
+    # Get the value's type
+    cls = type(value)
+
+    # Get the functions for the type
+    cli_repr_functions = get_cli_repr_functions(cls)
+
+    # If the functions exist, return the cli_repr function
+    if cli_repr_functions is not None:
+        return cli_repr_functions[0]
+
+    return None
+
+
+def get_from_cli_repr_function(cls: Type[T]) -> Optional[CLI_REPR_METHOD_TYPE[T]]:
+    """
+    Gets the function to call to parse the CLI representation of a value.
+
+    :param cls:     The type to get the from_cli_repr function for.
+    :return:        The from_cli_repr function, or None if none available.
+    """
+    # Get the functions for the type
+    cli_repr_functions = get_cli_repr_functions(cls)
+
+    # If the functions exist, return the from_cli_repr function
+    if cli_repr_functions is not None:
+        return cli_repr_functions[1]
+
+    return None
+
+
+def is_cli_representable_type(cls: Type[T]) -> bool:
+    """
+    Checks if the given class is a CLI-representable type.
+
+    :param cls:     The type to check.
+    :return:        True if the type is CLI-representable.
+    """
+    return get_cli_repr_functions(cls) is not None
+
+
+def is_cli_representable(value: T) -> bool:
+    """
+    Checks if the given value is CLI-representable.
+
+    :param value:   The value to check.
+    :return:        True if the value is CLI-representable.
+    """
+    return is_cli_representable_type(type(value))
+
+
+def cli_repr(value: T) -> str:
     """
     Gets the CLI representation of a CLI-representable value.
 
     :param value:   The value.
     :return:        The CLI string.
+    :raises TypeError:  If the type is not CLI-representable.
     """
-    # Get the type of the value
-    type_ = type(value)
+    # Get the cli_repr function for the value
+    cli_repr_function = get_cli_repr_function(value)
 
-    # Make sure it is CLI-representable
-    if not CLIRepresentable.type_check(type_):
+    # If it doesn't have a function, it's not CLI-representable
+    if cli_repr_function is None:
         raise TypeError(f"Values of type '{type.__name__}' are not CLI-representable")
 
-    # Handle honorary members
-    if type_ in HONORARY_MEMBERS:
-        return HONORARY_MEMBERS[type_][0](value)
-
-    return value._cli_repr()
+    return cli_repr_function(value)
 
 
-def from_cli_repr(type_: Type[T], cli_string: str) -> T:
+def from_cli_repr(cls: Type[T], cli_string: str) -> T:
     """
     Gets a value of a CLI-representable type from its CLI representation.
 
-    :param type_:       The type of value to get.
+    :param cls:         The type of value to get.
     :param cli_string:  The CLI representation.
     :return:            The value.
     :raises TypeError:  If the type is not CLI-representable.
     """
-    # Only works for CLI-representable types
-    if not CLIRepresentable.type_check(type_):
-        raise TypeError(f"Type '{type_.__name__}' are not CLI-representable")
+    # Get the from_cli_repr function for the type
+    from_cli_repr_function = get_from_cli_repr_function(cls)
 
-    # Handle honorary members
-    if type_ in HONORARY_MEMBERS:
-        return HONORARY_MEMBERS[type_][1](cli_string)
+    # If it doesn't have a function, it's not CLI-representable
+    if from_cli_repr_function is None:
+        raise TypeError(f"'{cls.__qualname__}' is not a CLI-representable type")
 
-    return type_._from_cli_repr(cli_string)
+    return from_cli_repr_function(cli_string)

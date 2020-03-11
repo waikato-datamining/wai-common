@@ -1,12 +1,13 @@
-from typing import Any, Optional
+from typing import Any, Optional, Type
 
 from ...meta import non_default_kwargs
+from ...meta.code_repr import CodeRepresentation, from_init
 from ..._ClassRegistry import ClassRegistry
 from .._typing import OptionsList
 from ._Option import Option
 
 
-class ClassRegistryOption(Option):
+class ClassOption(Option):
     """
     Option which selects a class from a class registry.
     Selection can only be made from aliases.
@@ -14,9 +15,13 @@ class ClassRegistryOption(Option):
     def __init__(self,
                  *flags: str,
                  registry: ClassRegistry,
+                 default: Type = ...,
                  required: bool = ...,
                  metavar: str = ...,
                  help: str = ...):
+        # Capture the code-representation of the option
+        code_representation: CodeRepresentation = from_init(self, locals())
+
         # Save the registry
         self._registry: ClassRegistry = registry
 
@@ -29,9 +34,13 @@ class ClassRegistryOption(Option):
         if len(choices) < minimum_required_choices:
             raise ValueError("Not enough choices")
 
-        super().__init__(*flags,
+        # Extract the set of keyword arguments
+        kwargs = non_default_kwargs(ClassOption.__init__, locals())
+
+        super().__init__(code_representation,
+                         *flags,
                          choices=choices,
-                         **non_default_kwargs(ClassRegistryOption.__init__, locals()))
+                         **non_default_kwargs(ClassOption.__init__, locals()))
 
     def _namespace_value_to_internal_value(self, namespace_value: Optional[str]) -> Optional[type]:
         return self._registry.find(namespace_value) if namespace_value is not None else None
