@@ -9,11 +9,15 @@ class ClassRegistry:
 
     # TODO: Alias conflicts with name/qualname
     """
-    def __init__(self):
+    def __init__(self, *classes: Type):
         self._name_lookup: Dict[str, Set[str]] = {}
         self._qualname_lookup: Dict[str, Type] = {}
         self._aliases: Dict[str, str] = {}
         self._alias_reverse_lookup: Dict[str, str] = {}
+
+        # Register any initial classes
+        for cls in classes:
+            self.register(cls)
 
     def register(self, cls: Type):
         """
