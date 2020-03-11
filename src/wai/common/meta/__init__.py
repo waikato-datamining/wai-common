@@ -1,6 +1,15 @@
 """
 Package for meta-programming constructs.
 """
+from ._CodeRepresentable import (
+    ImportDict,
+    CodeRepresentation,
+    CodeRepresentable,
+    code_repr,
+    get_import_dict,
+    get_code,
+    combine_import_dicts
+)
 from ._fully_qualified_name import fully_qualified_name
 from ._functions import (
     has_been_overridden,
