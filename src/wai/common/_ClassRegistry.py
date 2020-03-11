@@ -1,7 +1,7 @@
 from typing import Dict, Set, Type, Optional, Iterator
 
-from .meta import (
-    fully_qualified_name,
+from .meta import fully_qualified_name
+from .meta.code_repr import (
     CodeRepresentable,
     CodeRepresentation,
     code_repr,
