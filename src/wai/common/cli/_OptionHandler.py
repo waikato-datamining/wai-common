@@ -1,7 +1,6 @@
 from argparse import ArgumentParser, Namespace
 from typing import Type, Iterator, Union, Optional
 
-from .._ClassRegistry import ClassRegistry
 from .options import Option
 from ._ArgumentParserConfigurer import ArgumentParserConfigurer
 from ._typing import OptionsList, is_options_list
@@ -109,11 +108,5 @@ class OptionHandler(ArgumentParserConfigurer):
         if namespace is not None and not is_options_list(namespace):
             raise ValueError(f"{namespace} is not a Namespace or an options list")
 
-        # Parse the namespace
-        namespace = cls.get_configured_parser().parse_args(namespace)
-
-        # Parse options
-        for option in cls._get_all_options():
-            setattr(namespace, option.name, option._parse_raw_namespace_value(getattr(namespace, option.name)))
-
-        return namespace
+        # Parse the options list (uses sys.argv if namespace is None)
+        return cls.get_configured_parser().parse_args(namespace)
