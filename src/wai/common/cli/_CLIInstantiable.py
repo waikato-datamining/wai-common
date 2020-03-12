@@ -13,6 +13,7 @@ class CLIInstantiable(CLIRepresentable, OptionValueHandler):
     command-line.
     """
     def __init__(self, namespace: Union[Namespace, OptionsList, None] = None):
+        # TODO: Set initial values in internal format
         self._namespace: Namespace = self._ensure_namespace(namespace)
 
     @property
