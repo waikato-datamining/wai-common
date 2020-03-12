@@ -1,6 +1,14 @@
 Changelog
 =========
 
+0.0.27 (2020-03-12)
+-------------------
+
+- Additional functionality for ClassRegistry.
+- New cli Option, ClassOption, selects from a predefined set of classes.
+- import_code can now optionally bypass aliasing of inner classes.
+- meta.code_repr package for representing values as Python code.
+
 0.0.26 (2020-03-11)
 -------------------
 
