@@ -32,10 +32,18 @@ class CountOption(Option):
                          help=help)
 
     def _namespace_value_to_internal_value(self, namespace_value: Any) -> int:
-        return self._translation.translate_forward(namespace_value)
+        return (
+            self._translation.translate_forward(namespace_value)
+            if self._translation is not None
+            else namespace_value
+        )
 
     def _internal_value_to_namespace_value(self, value: Any) -> int:
-        return self._translation.translate_reverse(value)
+        return (
+            self._translation.translate_reverse(value)
+            if self._translation is not None
+            else value
+        )
 
     def _namespace_value_to_options_list(self, namespace_value: Any) -> OptionsList:
         # If count is 0, return no options
