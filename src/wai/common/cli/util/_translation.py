@@ -30,9 +30,18 @@ class TranslationTable(CodeRepresentable):
 
         return self._forward_translation[value]
 
+    def can_translate_reverse(self, value: int) -> bool:
+        """
+        Whether the given value is valid under reverse translation.
+
+        :param value:   The value to check.
+        :return:        True if the value can be reverse-translated.
+        """
+        return value in self._reverse_translation
+
     def translate_reverse(self, value: int) -> int:
         # Make sure the value is translatable
-        if value not in self._reverse_translation:
+        if not self.can_translate_reverse(value):
             raise ValueError(f"Value not in translation table: {value}")
 
         return self._reverse_translation[value]
