@@ -1,5 +1,5 @@
 from argparse import Namespace
-from typing import Union
+from typing import Union, Any
 
 from .util import to_cli_string, from_cli_string
 from ._CLIRepresentable import CLIRepresentable, cli_repr, from_cli_repr
@@ -12,9 +12,23 @@ class CLIInstantiable(CLIRepresentable, OptionValueHandler):
     Base class for types that can be instantiated from the
     command-line.
     """
-    def __init__(self, namespace: Union[Namespace, OptionsList, None] = None):
-        # TODO: Set initial values in internal format
-        self._namespace: Namespace = self._ensure_namespace(namespace)
+    def __init__(self,
+                 _namespace: Union[Namespace, OptionsList, None] = None,
+                 **internal: Any):
+        self._namespace: Namespace = (
+            self._ensure_namespace(_namespace)
+            if _namespace is not None or len(internal) == 0
+            else Namespace()
+        )
+
+        for option in self._get_all_options():
+            # If an option's value is supplied in internal format, set it
+            if option.name in internal:
+                self.set_option_value(option, internal[option.name])
+
+            # If the option has not been set, set it to its default
+            elif not hasattr(self._namespace, option.name):
+                option.set_from_options_list(self, [])
 
     @property
     def namespace(self) -> Namespace:
