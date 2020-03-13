@@ -68,6 +68,10 @@ class CountOption(Option):
         if not isinstance(internal_value, int):
             raise TypeError(f"Count options take integer values, not {internal_value}")
 
+        # Value must be reverse-translatable if we have a translation
+        if self._translation is not None and not self._translation.can_translate_reverse(internal_value):
+            raise ValueError(f"Value {internal_value} is not valid for the translation table")
+
     def _validate_namespace_value(self, namespace_value: Any):
         if not isinstance(namespace_value, int):
             raise TypeError(f"Count options expect integer namespace values, not {namespace_value}")
