@@ -28,7 +28,7 @@ class CountOption(Option):
         super().__init__(code_representation,
                          *flags,
                          action="count",
-                         default=translation.translate_forward(0),
+                         default=translation.translate_forward(0) if translation is not None else 0,
                          help=help)
 
     def _namespace_value_to_internal_value(self, namespace_value: Any) -> int:
