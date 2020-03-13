@@ -73,5 +73,10 @@ class CountOption(Option):
             raise ValueError(f"Value {internal_value} is not valid for the translation table")
 
     def _validate_namespace_value(self, namespace_value: Any):
+        # Namespace values are integers
         if not isinstance(namespace_value, int):
             raise TypeError(f"Count options expect integer namespace values, not {namespace_value}")
+
+        # Must be at least 0 (can't have negative count)
+        if namespace_value < 0:
+            raise ValueError(f"Can't have negative count ({namespace_value})")
