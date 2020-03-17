@@ -1,6 +1,12 @@
 Changelog
 =========
 
+0.0.29 (2020-03-18)
+-------------------
+
+- Bug fixes.
+- Initial values for options on CLIInstantiable objects can be specified in internal format.
+
 0.0.28 (2020-03-12)
 -------------------
 
