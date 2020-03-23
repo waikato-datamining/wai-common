@@ -1,6 +1,11 @@
 Changelog
 =========
 
+0.0.30 (2020-03-23)
+-------------------
+
+- Added a partial implementation of rational numbers.
+
 0.0.29 (2020-03-18)
 -------------------
 
