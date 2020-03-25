@@ -46,9 +46,6 @@ class TypedOption(Option):
             raise ValueError(f"Disallowed nargs value {nargs}")
         self._nargs = nargs if nargs is not ... else None
 
-        # Save our optional status
-        self._optional = not required if required is not ... else True
-
         # See if our values should be list-valued or not
         self._is_list_valued = action == "append" or nargs is not ...
 
@@ -68,7 +65,7 @@ class TypedOption(Option):
             choices = formatted_choices
 
         # Format default value
-        if default is ... and self._optional:
+        if default is ... and required is not True:
             default = [] if self._is_list_valued else None
 
         # Extract the set of keyword arguments

@@ -30,6 +30,9 @@ class Option(CodeRepresentable, ArgumentParserConfigurer, ABC):
         self._name: str = ""
         self._flags: Tuple[str] = flags
 
+        # Save the optional flag
+        self._optional: bool = not required if required is not ... else True
+
         # Convert the default value if supplied
         if default is not ...:
             self._validate_internal_value(default)
@@ -152,6 +155,17 @@ class Option(CodeRepresentable, ArgumentParserConfigurer, ABC):
             help = owner.get_help_text_for_option(self)
             if help is not None:
                 self._kwargs["help"] = help
+
+    # ========== #
+    # PROPERTIES #
+    # ========== #
+
+    @property
+    def optional(self) -> bool:
+        """
+        Whether this option is optional.
+        """
+        return self._optional
 
     # =================== #
     # CODE REPRESENTATION #
