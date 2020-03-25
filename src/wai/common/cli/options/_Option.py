@@ -169,17 +169,26 @@ class Option(CodeRepresentable, ArgumentParserConfigurer, ABC):
         return self._optional
 
     @property
+    def _namespace_default(self) -> Any:
+        """
+        Gets the namespace default value for this option.
+
+        :return:    The namespace default value.
+        """
+        # Parse the default using argparse if none was set
+        if self._default is ...:
+            self._default = self._get_namespace_value_from_options_list([])
+
+        return self._default
+
+    @property
     def default(self) -> Any:
         """
         Gets the default value for this option.
 
         :return:    The default value.
         """
-        # Parse the default using argparse if none was set
-        if self._default is ...:
-            self._default = self._get_namespace_value_from_options_list([])
-
-        return self._namespace_value_to_internal_value(self._default)
+        return self._namespace_value_to_internal_value(self._namespace_default)
 
     # =================== #
     # CODE REPRESENTATION #
