@@ -167,6 +167,15 @@ class Option(CodeRepresentable, ArgumentParserConfigurer, ABC):
         """
         return self._optional
 
+    @property
+    def default(self) -> Any:
+        """
+        Gets the default value for this option.
+
+        :return:    The default value.
+        """
+        return self._namespace_value_to_internal_value(self._get_namespace_value_from_options_list([]))
+
     # =================== #
     # CODE REPRESENTATION #
     # =================== #
@@ -307,17 +316,27 @@ class Option(CodeRepresentable, ArgumentParserConfigurer, ABC):
         if not isinstance(instance, OptionValueHandler):
             raise TypeError(f"Instance '{instance}' is not an option-value handler")
 
+        # Set it on the instance's namespace
+        setattr(instance.namespace, self.name, self._get_namespace_value_from_options_list(options_list))
+
+    def _get_namespace_value_from_options_list(self, options_list: OptionsList):
+        """
+        Gets the namespace value parsed from the given options-list for
+        this option.
+
+        :param options_list:    The options list.
+        :return:                The namespace value.
+        """
+        # Must have a name set to access the namespace
+        self._require_name("Can't get a namespace value via options-list until the option is bound")
+
         # Get a parser to parse the options list
         parser = self.get_configured_parser()
 
         # Parse the options list
         namespace = parser.parse_args(options_list)
 
-        # Get the namespace value
-        namespace_value = getattr(namespace, self.name)
-
-        # Set it on the instance's namespace
-        setattr(instance.namespace, self.name, namespace_value)
+        return getattr(namespace, self.name)
 
     # ===== #
     # OTHER #
