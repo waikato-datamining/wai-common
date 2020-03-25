@@ -37,6 +37,7 @@ class Option(CodeRepresentable, ArgumentParserConfigurer, ABC):
         if default is not ...:
             self._validate_internal_value(default)
             default = self._internal_value_to_namespace_value(default)
+        self._default = default
 
         # Save any non-default arguments as kwargs
         self._kwargs: Dict[str, Any] = non_default_kwargs(Option.__init__, locals())
@@ -174,7 +175,11 @@ class Option(CodeRepresentable, ArgumentParserConfigurer, ABC):
 
         :return:    The default value.
         """
-        return self._namespace_value_to_internal_value(self._get_namespace_value_from_options_list([]))
+        # Parse the default using argparse if none was set
+        if self._default is ...:
+            self._default = self._get_namespace_value_from_options_list([])
+
+        return self._namespace_value_to_internal_value(self._default)
 
     # =================== #
     # CODE REPRESENTATION #
