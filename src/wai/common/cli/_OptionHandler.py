@@ -86,7 +86,7 @@ class OptionHandler(ArgumentParserConfigurer):
 
         # Make sure it is an option
         if not isinstance(attr, Option):
-            raise NameError(f"Class '{cls.__qualname__} has no option '{name}'")
+            raise NameError(f"Class '{cls.__qualname__}' has no option '{name}'")
 
         return attr
 
