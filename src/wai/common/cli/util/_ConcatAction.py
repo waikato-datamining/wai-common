@@ -50,5 +50,5 @@ class ConcatAction(_AppendAction):
     def __call__(self, parser, namespace, values, option_string=None):
         items = getattr(namespace, self.dest, None)
         items = [] if items is self.default else list(items)
-        items += values
+        items += values if isinstance(values, list) else [values]
         setattr(namespace, self.dest, items)
