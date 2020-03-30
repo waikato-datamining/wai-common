@@ -25,9 +25,6 @@ class ClassOption(Option):
         # Save the registry
         self._registry: ClassRegistry = registry
 
-        # Save our optionality
-        self._optional: bool = not required if required is not ... else True
-
         # Make sure there are some choices to choose from
         minimum_required_choices = 1 if self._optional else 2
         choices = tuple(registry.aliases())
