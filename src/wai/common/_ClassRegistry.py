@@ -64,6 +64,12 @@ class ClassRegistry(CodeRepresentable):
         """
         return fully_qualified_name(cls) in self._qualname_lookup
 
+    def registered_classes(self) -> Iterator[Type]:
+        """
+        Gets an iterator over all registered classes.
+        """
+        return (value for value in self._qualname_lookup.values())
+
     def alias(self, cls: Type, alias: str) -> 'ClassRegistry':
         """
         Creates an alias for a class. Automatically registers
