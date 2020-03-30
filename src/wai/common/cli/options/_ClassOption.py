@@ -31,9 +31,6 @@ class ClassOption(Option):
         if len(choices) < minimum_required_choices:
             raise ValueError("Not enough choices")
 
-        # Extract the set of keyword arguments
-        kwargs = non_default_kwargs(ClassOption.__init__, locals())
-
         super().__init__(code_representation,
                          *flags,
                          choices=choices,
