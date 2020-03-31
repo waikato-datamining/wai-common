@@ -106,7 +106,7 @@ class OptionHandler(ArgumentParserConfigurer):
 
         # Must be an options list if not a namespace
         if namespace is not None and not is_options_list(namespace):
-            raise ValueError(f"{namespace} is not a Namespace or an options list")
+            raise TypeError(f"{namespace} is not a Namespace or an options list")
 
         # Parse the options list (uses sys.argv if namespace is None)
         try:
