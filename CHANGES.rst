@@ -1,6 +1,19 @@
 Changelog
 =========
 
+0.0.31 (2020-03-31)
+-------------------
+
+- Removed Rational class as a better implementation is provided by fractions.Fraction.
+- Several changes to CLI classes:
+
+  - Can query the optionality of all option types.
+  - Default values are now unchecked.
+  - TypedOption no longer produces lists of lists for certain combinations of nargs and action.
+  - Argument parsers log by default (instead of printing to stdout/stderr).
+
+- Can now get all registered classes from a ClassRegistry.
+
 0.0.30 (2020-03-23)
 -------------------
 
