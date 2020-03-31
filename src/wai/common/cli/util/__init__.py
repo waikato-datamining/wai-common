@@ -12,4 +12,5 @@ from ._flags import (
     is_long_flag_reason,
     flag_from_name
 )
+from ._LoggingArgumentParser import LoggingArgumentParser
 from ._translation import TranslationTable
