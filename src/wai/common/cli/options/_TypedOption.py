@@ -3,6 +3,7 @@ from typing import Union, Any, Type, Iterable, Tuple, TypeVar, List
 
 from ...meta import non_default_kwargs
 from ...meta.code_repr import CodeRepresentation, from_init
+from ..util import ConcatAction
 from .._CLIRepresentable import CLIRepresentable, cli_repr, from_cli_repr, is_cli_representable_type
 from .._typing import OptionsList
 from ._Option import Option
@@ -11,7 +12,7 @@ from ._Option import Option
 ClassType = TypeVar("ClassType", bound=CLIRepresentable)
 
 # The set of actions allowed with this type of option
-ALLOWED_ACTIONS = {"store", "append"}
+ALLOWED_ACTIONS = {"store", "concat"}
 
 
 class TypedOption(Option):
@@ -47,7 +48,7 @@ class TypedOption(Option):
         self._nargs = nargs if nargs is not ... else None
 
         # See if our values should be list-valued or not
-        self._is_list_valued = action == "append" or nargs is not ...
+        self._is_list_valued = action == "concat" or nargs is not ...
 
         # Format choices as strings
         if choices is not ...:
@@ -70,6 +71,8 @@ class TypedOption(Option):
 
         # Extract the set of keyword arguments
         kwargs = non_default_kwargs(TypedOption.__init__, locals())
+        if action == "concat":
+            kwargs["action"] = ConcatAction
 
         super().__init__(code_representation, *flags, **kwargs)
 
