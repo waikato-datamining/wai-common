@@ -175,6 +175,10 @@ class Option(CodeRepresentable, ArgumentParserConfigurer, ABC):
 
         :return:    The default value.
         """
+        # Can't get the default value for a required option
+        if not self._optional:
+            raise RuntimeError("Can't get the default value of a required option")
+
         # Parse the default using argparse if none was set
         if self._default is ...:
             self._default = self._get_namespace_value_from_options_list([])
