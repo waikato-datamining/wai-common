@@ -1,6 +1,7 @@
 from argparse import ArgumentParser
 
 from ..meta import instanceoptionalmethod, non_default_kwargs
+from .util import LoggingArgumentParser
 
 
 class ArgumentParserConfigurer:
@@ -29,7 +30,8 @@ class ArgumentParserConfigurer:
                               argument_default=...,
                               conflict_handler=...,
                               add_help=...,
-                              allow_abbrev=...) -> ArgumentParser:
+                              allow_abbrev=...,
+                              logging: bool = True) -> ArgumentParser:
         """
         Creates a configured parser.
 
@@ -39,8 +41,11 @@ class ArgumentParserConfigurer:
 
         :return:    The configured parser.
         """
+        # Get the parser class based on the logging flag
+        parser_class = LoggingArgumentParser if logging else ArgumentParser
+
         # Create a parser
-        parser = ArgumentParser(**non_default_kwargs(ArgumentParserConfigurer.get_configured_parser, locals()))
+        parser = parser_class(**non_default_kwargs(ArgumentParserConfigurer.get_configured_parser, locals()))
 
         # Configure it
         self.configure_parser(parser)
