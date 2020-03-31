@@ -351,7 +351,10 @@ class Option(CodeRepresentable, ArgumentParserConfigurer, ABC):
         parser = self.get_configured_parser()
 
         # Parse the options list
-        namespace = parser.parse_args(options_list)
+        try:
+            namespace = parser.parse_args(options_list)
+        except SystemExit as e:
+            raise ValueError("Error parsing options list") from e
 
         return getattr(namespace, self.name)
 

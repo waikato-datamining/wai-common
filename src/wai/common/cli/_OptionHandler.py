@@ -109,4 +109,7 @@ class OptionHandler(ArgumentParserConfigurer):
             raise ValueError(f"{namespace} is not a Namespace or an options list")
 
         # Parse the options list (uses sys.argv if namespace is None)
-        return cls.get_configured_parser().parse_args(namespace)
+        try:
+            return cls.get_configured_parser().parse_args(namespace)
+        except SystemExit as e:
+            raise ValueError("Error parsing options list") from e
