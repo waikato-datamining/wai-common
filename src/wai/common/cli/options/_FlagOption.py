@@ -32,7 +32,7 @@ class FlagOption(Option):
 
     def _namespace_value_to_options_list(self, namespace_value: Any) -> OptionsList:
         # Flag should be present if value is True XOR invert is True
-        return [self.flags[0]] if namespace_value != self._invert else []
+        return [self.flags[0]]
 
     def _validate_internal_value(self, value: Any):
         # Make sure the value is boolean

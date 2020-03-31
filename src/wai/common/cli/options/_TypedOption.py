@@ -25,7 +25,7 @@ class TypedOption(Option):
                  action: str = ...,
                  nargs: Union[int, str] = ...,
                  choices: Iterable[Union[str, ClassType]] = ...,
-                 default: Union[ClassType, List[ClassType], None] = ...,
+                 default: Union[ClassType, List[ClassType]] = ...,
                  required: bool = ...,
                  help: str = ...,
                  metavar: Union[str, Tuple[str, ...]] = ...):
@@ -104,8 +104,6 @@ class TypedOption(Option):
             length = len(namespace_value)
             nargs = self._nargs if self._nargs is not None else 1
             options_list = []
-            if self._optional and length == 0:
-                pass
             if self._action == "store" or isinstance(nargs, str):
                 options_list.append(self._flags[0])
                 for val in namespace_value:
@@ -117,8 +115,6 @@ class TypedOption(Option):
                         options_list.append(cli_repr(val))
             return options_list
         else:
-            if self._optional and namespace_value is None:
-                return []
             return [self._flags[0], namespace_value]
 
     def _validate_namespace_value(self, namespace_value: Any):
@@ -128,7 +124,7 @@ class TypedOption(Option):
 
             if not all(isinstance(element, str) for element in namespace_value):
                 raise TypeError(f"Class option expects all elements of namespace list to be strings")
-        elif not self._optional or namespace_value is not None:
+        else:
             if not isinstance(namespace_value, str):
                 raise TypeError(f"Class option expects namespace values as strings")
 
@@ -147,10 +143,9 @@ class TypedOption(Option):
         :return:            The actual value that should be set.
         :raises Exception:  If the value cannot be validated.
         """
-        # Make sure the value is of our type (or None if we're optional)
-        if not self._optional or value is not None:
-            if not isinstance(value, self._type):
-                raise TypeError(f"Expected {self._type.__name__} but got {type(value).__name__}")
+        # Make sure the value is of our type
+        if not isinstance(value, self._type):
+            raise TypeError(f"Expected {self._type.__name__} but got {type(value).__name__}")
 
     def _validate_internal_value_list(self, value: Any):
         """
@@ -167,9 +162,7 @@ class TypedOption(Option):
 
         # Make sure the list has the correct number of values in it
         length = len(value)
-        if self._optional and length == 0:
-            pass
-        elif isinstance(self._nargs, int):
+        if isinstance(self._nargs, int):
             if self._action == "store":
                 if length != self._nargs:
                     raise ValueError(f"Requires list of length {self._nargs}")

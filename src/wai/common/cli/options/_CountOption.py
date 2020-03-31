@@ -28,7 +28,7 @@ class CountOption(Option):
         super().__init__(code_representation,
                          *flags,
                          action="count",
-                         default=translation.translate_forward(0) if translation is not None else 0,
+                         default=0,
                          help=help)
 
     def _namespace_value_to_internal_value(self, namespace_value: Any) -> int:
@@ -46,10 +46,6 @@ class CountOption(Option):
         )
 
     def _namespace_value_to_options_list(self, namespace_value: Any) -> OptionsList:
-        # If count is 0, return no options
-        if namespace_value == 0:
-            return []
-
         # Try to use a short flag if available, otherwise just the first flag
         selected_flag = self.flags[0]
         short_flag = is_short_flag(selected_flag)

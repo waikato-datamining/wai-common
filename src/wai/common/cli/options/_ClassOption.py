@@ -35,20 +35,16 @@ class ClassOption(Option):
                          choices=choices,
                          **non_default_kwargs(ClassOption.__init__, locals()))
 
-    def _namespace_value_to_internal_value(self, namespace_value: Optional[str]) -> Optional[type]:
-        return self._registry.find(namespace_value) if namespace_value is not None else None
+    def _namespace_value_to_internal_value(self, namespace_value: str) -> Optional[type]:
+        return self._registry.find(namespace_value)
 
-    def _internal_value_to_namespace_value(self, internal_value: Optional[type]) -> Optional[str]:
-        return self._registry.get_alias(internal_value) if internal_value is not None else None
+    def _internal_value_to_namespace_value(self, internal_value: type) -> Optional[str]:
+        return self._registry.get_alias(internal_value)
 
-    def _namespace_value_to_options_list(self, namespace_value: Optional[str]) -> OptionsList:
-        return [self._flags[0], namespace_value] if namespace_value is not None else []
+    def _namespace_value_to_options_list(self, namespace_value: str) -> OptionsList:
+        return [self._flags[0], namespace_value]
 
     def _validate_internal_value(self, internal_value: Any):
-        # If we're optional, can have the value None
-        if self._optional and internal_value is None:
-            return
-
         # Internal values are classes
         if not isinstance(internal_value, type):
             raise TypeError(f"Class-registry option expects classes for internal values")
@@ -58,10 +54,6 @@ class ClassOption(Option):
             raise ValueError(f"Type '{internal_value.__qualname__}' is not a valid type for this option")
 
     def _validate_namespace_value(self, namespace_value: Any):
-        # If we're optional, can have the value None
-        if self._optional and namespace_value is None:
-            return
-
         # Namespace value should be a string otherwise
         if not isinstance(namespace_value, str):
             raise TypeError(f"Class-registry options expect string namespace values")

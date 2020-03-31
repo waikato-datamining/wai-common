@@ -18,7 +18,6 @@ class Option(CodeRepresentable, ArgumentParserConfigurer, ABC):
                  *flags: str,
                  action: Union[str, Type[Action]] = ...,
                  nargs: Union[int, str] = ...,
-                 const: Any = ...,
                  default: Any = ...,
                  choices: Iterable[Any] = ...,
                  required: bool = ...,
@@ -35,8 +34,9 @@ class Option(CodeRepresentable, ArgumentParserConfigurer, ABC):
 
         # Convert the default value if supplied
         if default is not ...:
-            self._validate_internal_value(default)
-            default = self._internal_value_to_namespace_value(default)
+            # Can't set a default value for a required option
+            if not self._optional:
+                raise ValueError(f"Can't set a default value for a required option")
         self._default = default
 
         # Save any non-default arguments as kwargs
@@ -169,26 +169,17 @@ class Option(CodeRepresentable, ArgumentParserConfigurer, ABC):
         return self._optional
 
     @property
-    def _namespace_default(self) -> Any:
-        """
-        Gets the namespace default value for this option.
-
-        :return:    The namespace default value.
-        """
-        # Parse the default using argparse if none was set
-        if self._default is ...:
-            self._default = self._get_namespace_value_from_options_list([])
-
-        return self._default
-
-    @property
     def default(self) -> Any:
         """
         Gets the default value for this option.
 
         :return:    The default value.
         """
-        return self._namespace_value_to_internal_value(self._namespace_default)
+        # Parse the default using argparse if none was set
+        if self._default is ...:
+            self._default = self._get_namespace_value_from_options_list([])
+
+        return self._default
 
     # =================== #
     # CODE REPRESENTATION #
@@ -216,6 +207,10 @@ class Option(CodeRepresentable, ArgumentParserConfigurer, ABC):
 
         # Get the option's value from the namespace
         namespace_value = getattr(instance.namespace, self.name)
+
+        # If it is the default value, just return it
+        if self._optional and namespace_value is self.default:
+            return namespace_value
 
         # Validate the namespace value
         self._validate_namespace_value(namespace_value)
@@ -289,6 +284,10 @@ class Option(CodeRepresentable, ArgumentParserConfigurer, ABC):
 
         # Get the namespace value of the option
         namespace_value = getattr(instance.namespace, self.name)
+
+        # If it's the default value, return an empty options-list
+        if self._optional and namespace_value is self.default:
+            return []
 
         # Validate the namespace value
         self._validate_namespace_value(namespace_value)
