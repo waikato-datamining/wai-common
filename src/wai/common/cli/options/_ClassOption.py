@@ -26,10 +26,9 @@ class ClassOption(Option):
         self._registry: ClassRegistry = registry
 
         # Make sure there are some choices to choose from
-        minimum_required_choices = 1 if self._optional else 2
         choices = tuple(registry.aliases())
-        if len(choices) < minimum_required_choices:
-            raise ValueError("Not enough choices")
+        if len(choices) == 0:
+            raise ValueError("No classes to choose from")
 
         super().__init__(code_representation,
                          *flags,
