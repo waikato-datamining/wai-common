@@ -174,7 +174,7 @@ class TypedOption(Option):
                 if length != self._nargs:
                     raise ValueError(f"Requires list of length {self._nargs}")
             else:
-                if length % self._nargs != 0:
+                if length == 0 or length % self._nargs != 0:
                     raise ValueError(f"Requires list of length a multiple of {self._nargs}")
         elif self._nargs == "+":
             if length == 0:
