@@ -27,6 +27,7 @@ class Option(CodeRepresentable, ArgumentParserConfigurer, ABC):
         self._check_flags(flags)
 
         self._name: str = ""
+        self._owner: Type = type(None)
         self._flags: Tuple[str] = flags
 
         # Save the optional flag
@@ -150,12 +151,7 @@ class Option(CodeRepresentable, ArgumentParserConfigurer, ABC):
 
         # Save our name
         self._name = name
-
-        # Get our help text from the owner if we don't have it already
-        if "help" not in self._kwargs:
-            help = owner.get_help_text_for_option(self)
-            if help is not None:
-                self._kwargs["help"] = help
+        self._owner = owner
 
     # ========== #
     # PROPERTIES #
@@ -184,6 +180,28 @@ class Option(CodeRepresentable, ArgumentParserConfigurer, ABC):
             self._default = self._get_namespace_value_from_options_list([])
 
         return self._default
+
+    @property
+    def kwargs(self) -> Dict[str, Any]:
+        """
+        Gets the kwargs for this option.
+
+        :return:    The kwargs.
+        """
+        # Take a copy so that the kwargs can't be mutated
+        return dict(self._kwargs)
+
+    @property
+    def owner(self) -> Type:
+        """
+        Gets the class that owns this option.
+
+        :return: A sub-type of OptionHandler.
+        """
+        # Can't get the owner until after binding
+        self._require_name("Can't get the owner of an unbound option")
+
+        return self._owner
 
     # =================== #
     # CODE REPRESENTATION #

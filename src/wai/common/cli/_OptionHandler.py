@@ -12,9 +12,11 @@ class OptionHandler(ArgumentParserConfigurer):
     """
     @classmethod
     def configure_parser(cls, parser: ArgumentParser):
+        from .context import OptionClassContext
+
         # Configure the parser with each option
         for option in cls._get_all_options():
-            option.configure_parser(parser)
+            OptionClassContext(option, cls).configure_parser(parser)
 
     @classmethod
     def get_all_options(cls) -> Iterator[str]:
