@@ -1,6 +1,11 @@
 Changelog
 =========
 
+0.0.32 (2020-07-29)
+-------------------
+
+- Fixed bug where option handlers weren't respecting redefinitions of option help text.
+
 0.0.31 (2020-03-31)
 -------------------
 
