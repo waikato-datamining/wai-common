@@ -22,7 +22,7 @@ HONORARY_MEMBERS: Dict[type, CodeReprFunction] = {
     float: primitive_code_repr,
     int: primitive_code_repr,
     bool: primitive_code_repr,
-    None: primitive_code_repr,
+    type(None): primitive_code_repr,
     range: primitive_code_repr,
     slice: primitive_code_repr,
     dict: dict_code_repr,
