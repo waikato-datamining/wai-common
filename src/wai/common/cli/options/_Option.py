@@ -366,7 +366,7 @@ class Option(CodeRepresentable, ArgumentParserConfigurer, ABC):
         self._require_name("Can't get a namespace value via options-list until the option is bound")
 
         # Get a parser to parse the options list
-        parser = self.get_configured_parser()
+        parser = self.get_configured_parser(add_help=False)
 
         # Parse the options list
         try:
