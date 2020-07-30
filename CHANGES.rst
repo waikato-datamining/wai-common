@@ -1,6 +1,11 @@
 Changelog
 =========
 
+0.0.34 (2020-07-30)
+-------------------
+
+- Added function to get the standard app configuration directory on a system.
+
 0.0.33 (2020-07-30)
 -------------------
 
