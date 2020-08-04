@@ -45,7 +45,7 @@ def type_from_cli_repr(cli_string: str) -> type:
 # Honorary CLI-representable types and their 'cli_repr'/'from_cli_repr' methods
 HONORARY_MEMBERS: Dict[Type[T], Tuple[CLI_REPR_METHOD_TYPE[T], FROM_CLI_REPR_METHOD_TYPE[T]]] = {
     int: (repr, int),
-    str: (repr, lambda cli_string: cli_string),
+    str: (lambda self: self, lambda cli_string: cli_string),
     float: (repr, float)
 }
 
