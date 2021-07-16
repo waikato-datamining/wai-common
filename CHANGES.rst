@@ -5,6 +5,7 @@ Changelog
 -------------------
 
 - Added serialisers for raw binary data and dictionaries.
+- Added tools for working with subsets and permutations.
 
 0.0.35 (2020-08-05)
 -------------------
