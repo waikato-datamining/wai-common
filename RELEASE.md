@@ -9,10 +9,9 @@ Preparation:
 Commands for releasing on pypi.org (requires twine >= 1.8.0):
 
 ```
-  rm dist/* src/wai.common.egg-info
-  python3 setup.py clean
-  python3 setup.py sdist
-  twine upload dist/*
+  rm -r dist src/wai.common.egg-info
+  python setup.py clean sdist
+  python -m twine upload dist/*
 ```
 
 
