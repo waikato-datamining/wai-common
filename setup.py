@@ -33,7 +33,7 @@ setup(
     namespace_packages=[
         "wai"
     ],
-    version="0.0.35",
+    version="0.0.36",
     author='Corey Sterling',
     author_email='coreytsterling@gmail.com',
     install_requires=[
