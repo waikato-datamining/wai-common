@@ -1,6 +1,11 @@
 Changelog
 =========
 
+0.0.36 (2021-??-??)
+-------------------
+
+- Added serialisers for raw binary data and dictionaries.
+
 0.0.35 (2020-08-05)
 -------------------
 
