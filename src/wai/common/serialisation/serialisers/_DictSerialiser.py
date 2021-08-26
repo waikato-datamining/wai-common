@@ -51,7 +51,13 @@ class DictSerialiser(
             self,
             stream: IO[bytes]
     ) -> Dict[KeyType, ValueType]:
-        return {
-            self._key_serialiser.deserialise(stream): self._value_serialiser.deserialise(stream)
-            for _ in range(self._length_serialiser.deserialise(stream))
-        }
+        # Create a dict to accumulate the key/value pairs as they are deserialised
+        result = {}
+
+        # Deserialise the keys and values
+        for _ in range(self._length_serialiser.deserialise(stream)):
+            key = self._key_serialiser.deserialise(stream)
+            value = self._value_serialiser.deserialise(stream)
+            result[key] = value
+
+        return result
