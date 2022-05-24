@@ -1,6 +1,12 @@
 Changelog
 =========
 
+0.0.39 (2022-05-23)
+-------------------
+
+- fixed `LocatedObjects.from_report` method: no longer skips field names that
+  end with x/y/width/height, only when they exactly match that name.
+
 0.0.38 (2022-05-23)
 -------------------
 

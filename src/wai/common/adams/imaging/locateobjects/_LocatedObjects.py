@@ -186,7 +186,8 @@ class LocatedObjects(UserList):
                 continue
             meta[constants.KEY_INDEX] = group[len(prefix):]
             for field in group_fields:
-                if field.name.endswith((constants.KEY_X, constants.KEY_Y, constants.KEY_WIDTH, constants.KEY_HEIGHT)):
+                fname = field.name[len(group) + 1:]
+                if fname in [constants.KEY_X, constants.KEY_Y, constants.KEY_WIDTH, constants.KEY_HEIGHT]:
                     continue
                 meta[field.name[field.name.rindex(".") + 1:]] = report.get_value(field)
 
