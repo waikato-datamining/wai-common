@@ -1,7 +1,7 @@
 Changelog
 =========
 
-0.0.40 (????-??-??)
+0.0.40 (2022-07-27)
 -------------------
 
 - improved checks in `LocatedObject.has_polygon()` to avoid parse errors when
