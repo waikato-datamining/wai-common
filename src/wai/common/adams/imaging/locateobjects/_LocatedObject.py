@@ -113,7 +113,12 @@ class LocatedObject(LoggingMixin):
 
         :return:    True if present.
         """
-        return constants.KEY_POLY_X in self.metadata and constants.KEY_POLY_Y in self.metadata
+        return (constants.KEY_POLY_X in self.metadata) \
+            and (constants.KEY_POLY_Y in self.metadata) \
+            and (isinstance(self.metadata[constants.KEY_POLY_X], str)) \
+            and (isinstance(self.metadata[constants.KEY_POLY_Y], str)) \
+            and ("," in self.metadata[constants.KEY_POLY_X]) \
+            and ("," in self.metadata[constants.KEY_POLY_Y])
 
     def get_rectangle(self, scale: float = 1.0) -> Rectangle:
         """

@@ -1,6 +1,12 @@
 Changelog
 =========
 
+0.0.40 (????-??-??)
+-------------------
+
+- improved checks in `LocatedObject.has_polygon()` to avoid parse errors when
+  `poly_x` and `poly_y` are empty strings
+
 0.0.39 (2022-05-23)
 -------------------
 
