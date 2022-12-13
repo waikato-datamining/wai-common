@@ -1,4 +1,4 @@
-from typing import Dict, Union
+from typing import Any, Dict, Union
 
 from ._Field import Field, DATATYPE_BOOLEAN, DATATYPE_STRING
 
@@ -22,7 +22,7 @@ class Report:
     Class representing the header meta-data of a spectrum file.
     """
     def __init__(self):
-        self.params: Dict[Field, any] = {}
+        self.params: Dict[Field, Any] = {}
         self.fields: Dict[str, Field] = {}
         self.database_id: int = NO_ID
 
