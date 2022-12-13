@@ -228,7 +228,7 @@ def fix_string(string: str) -> str:
     :return:        The fixed string
     """
     string = string.replace('\\t', '\t')
-    string = string.replace('\\', '')
+    string = string.replace('\\ ', ' ')
     return string
 
 
