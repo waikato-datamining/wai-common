@@ -1,4 +1,4 @@
-from typing import List, Tuple, Optional, Dict
+from typing import Generator, IO, List, Tuple, Optional, Dict
 
 from .._functions import get_open_func
 from ._Field import Field, DATATYPE_UNKNOWN, DATATYPE_NUMERIC
@@ -36,7 +36,7 @@ def read_all(filename: str, encoding: str = 'utf-8') -> List[Spectrum]:
     return [spectrum for spectrum in reader(filename, encoding)]
 
 
-def reader(filename: str, encoding: str = 'utf-8') -> Spectrum:
+def reader(filename: str, encoding: str = 'utf-8') -> Generator[Spectrum, None, None]:
     """
     Creates a generator that reads a .spec or .spec.gz file into memory.
     Each iteration of the generator returns a single spectrum from the file.
@@ -55,27 +55,52 @@ def reader(filename: str, encoding: str = 'utf-8') -> Spectrum:
 
     # Read the file
     with open_func(filename, mode, encoding=encoding) as file:
-        # Keep reading spectra until we run out
-        while True:
-            # Read the next spectrum from the file
-            sample_data = read_report(file)
-            points, more = read_points(file)
-
-            # Format and return the next spectrum
-            spectrum = Spectrum()
-            if sample_data is not None:
-                spectrum.id = sample_data.get_id()
-                spectrum.database_id = sample_data.get_parameter(FIELD_PARENT_ID)
-            spectrum.report = sample_data
-            spectrum.points = points
-            yield spectrum
-
-            # Finish once all spectra are read from the file
-            if not more:
-                return
+        yield from read_spectra(file)
 
 
-def read_report(file) -> Optional[Report]:
+def read_spectra(file: IO[str]) -> Generator[Spectrum, None, None]:
+    """
+    Reads all spectra from the file.
+
+    :param file:
+                The file being read from.
+    :return:
+                A generator over the spectra in the file.
+    """
+    # Keep reading spectra until we run out
+    while True:
+        spectrum, more = read_spectrum(file)
+
+        yield spectrum
+
+        # Finish once all spectra are read from the file
+        if not more:
+            return
+
+def read_spectrum(file: IO[str]) -> Tuple[Spectrum, bool]:
+    """
+    Reads a spectrum from the file.
+
+    :param file:
+                The file being read from.
+    :return:
+                The next spectrum from the file.
+    """
+    # Read the next spectrum from the file
+    sample_data = read_report(file)
+    points, more = read_points(file)
+
+    # Format and return the next spectrum
+    spectrum = Spectrum()
+    if sample_data is not None:
+        spectrum.id = sample_data.get_id()
+        spectrum.database_id = sample_data.get_parameter(FIELD_PARENT_ID)
+    spectrum.report = sample_data
+    spectrum.points = points
+    return spectrum, more
+
+
+def read_report(file: IO[str]) -> Optional[Report]:
     """
     Reads the report meta-data section of the file.
 
@@ -207,7 +232,7 @@ def fix_string(string: str) -> str:
     return string
 
 
-def read_points(file) -> Tuple[List[SpectrumPoint], bool]:
+def read_points(file: IO[str]) -> Tuple[List[SpectrumPoint], bool]:
     """
     Reads the data points section of the file.
 
@@ -241,7 +266,7 @@ def read_points(file) -> Tuple[List[SpectrumPoint], bool]:
     return points, more
 
 
-def line_peeker(file) -> str:
+def line_peeker(file: IO[str]) -> str:
     """
     Creates a generator that reads lines from the file,
     but leaves the read position at the beginning of the

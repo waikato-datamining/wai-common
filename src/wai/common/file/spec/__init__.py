@@ -13,6 +13,6 @@ spectra = spec.read_all('filename.spec')
 """
 from ._Field import Field, DATATYPE_BOOLEAN, DATATYPE_NUMERIC, DATATYPE_STRING, DATATYPE_UNKNOWN
 from ._Report import Report, NO_ID
-from ._SpecFileReader import read_all, reader
+from ._SpecFileReader import read_all, reader, read_spectra, read_spectrum
 from ._Spectrum import Spectrum
 from ._SpectrumPoint import SpectrumPoint
