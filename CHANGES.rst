@@ -4,6 +4,7 @@ Changelog
 0.0.41 (2022-12-??)
 -------------------
 
+- String serialisation of spectra now produces a .spec-file formatted string.
 - Bug fixes.
 
 0.0.40 (2022-07-27)

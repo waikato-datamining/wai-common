@@ -89,6 +89,25 @@ class Spectrum:
 
         super().__setattr__(key, value)
 
+    def __str__(self) -> str:
+        def fix_string(string: str) -> str:
+            string = string.replace('\t', '\\t')
+            string = string.replace(' ', '\\ ')
+            return string
+
+        return (
+            "\n".join(
+                f"{fix_string(field.name)}={fix_string(str(self.report.params[field]))}\n"
+                f"{fix_string(field.name)}\\tDataType={field.datatype}"
+                for field in self.report.fields.values()
+            )
+            + "\nwaveno,amplitude\n" +
+            "\n".join(
+                f"{point.wave_number, point.amplitude}"
+                for point in self.points
+            )
+        )
+
 
 def new_spectrum_id_initialiser() -> str:
     # TODO: Make return the curent date-time as per reference implementation. csterling
