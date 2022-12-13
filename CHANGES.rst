@@ -1,7 +1,7 @@
 Changelog
 =========
 
-0.0.41 (2022-12-??)
+0.0.41 (2022-12-14)
 -------------------
 
 - String serialisation of spectra now produces a .spec-file formatted string.
