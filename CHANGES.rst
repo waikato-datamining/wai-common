@@ -1,11 +1,11 @@
 Changelog
 =========
 
-0.0.42 (????-??-??)
+0.0.42 (2023-08-18)
 -------------------
 
 - `wai.common._functions` now imports `Hashable` from `collections.abc` instead
-  of `collections` (got removed in 3.10)
+  of `collections` (got removed in Python 3.10)
 
 0.0.41 (2022-12-14)
 -------------------
