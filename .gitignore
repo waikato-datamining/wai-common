@@ -105,7 +105,9 @@ venv.bak/
 
 #PyCharm
 .idea/*
+*.iml
 
 # Corey's test files
 corey/
 venv3.7/
+blah*
