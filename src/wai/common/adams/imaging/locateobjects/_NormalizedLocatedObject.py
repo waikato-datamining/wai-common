@@ -93,8 +93,8 @@ class NormalizedLocatedObject(LoggingMixin):
         """
         left: float = self.x
         top: float = self.y
-        right: float = self.x + self.width - 1
-        bottom: float = self.y + self.height - 1
+        right: float = self.x + self.width
+        bottom: float = self.y + self.height
 
         return f"{left} {top} {right} {top} {right} {bottom} {left} {bottom}"
 
@@ -219,16 +219,16 @@ class NormalizedLocatedObject(LoggingMixin):
                     px[i] = 0
                     padjusted = True
 
-                if px[i] >= width:
-                    px[i] = width - 1
+                if px[i] > width:
+                    px[i] = width
                     padjusted = True
 
                 if py[i] < 0:
                     py[i] = 0
                     padjusted = True
 
-                if py[i] >= height:
-                    py[i] = height - 1
+                if py[i] > height:
+                    py[i] = height
                     padjusted = True
 
             if padjusted:

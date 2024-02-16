@@ -1,6 +1,11 @@
 Changelog
 =========
 
+0.0.44 (2024-02-16)
+-------------------
+
+- fixed methods `get_location` and `make_fit` of the `NormalizedLocatedObject` class
+
 0.0.43 (2024-02-16)
 -------------------
 
