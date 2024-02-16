@@ -1,6 +1,14 @@
 Changelog
 =========
 
+0.0.43 (2024-02-16)
+-------------------
+
+- added support for normalized geometric shapes (module `wai.common.geometry`):
+  NormalizedPoint, NormalizedPolygon, NormalizedRectangle
+- added support for normalized located objects (module `wai.common.imaging.locateobjects`):
+  NormalizedLocatedObject, NormalizedLocatedObjects
+
 0.0.42 (2023-08-18)
 -------------------
 
