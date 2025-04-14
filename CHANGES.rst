@@ -1,6 +1,12 @@
 Changelog
 =========
 
+0.0.46 (2025-05-14)
+-------------------
+
+- removed restrictions from `requirements.txt`
+
+
 0.0.45 (2025-04-14)
 -------------------
 
