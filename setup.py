@@ -13,7 +13,7 @@ def _read(f) -> bytes:
 
 
 setup(
-    name="wai.common",
+    name="wai_common",
     description="Python library with common functionality for other Waikato projects.",
     long_description=(
         _read('DESCRIPTION.rst') + b'\n' +
@@ -33,7 +33,7 @@ setup(
     namespace_packages=[
         "wai"
     ],
-    version="0.0.44",
+    version="0.0.45",
     author='Corey Sterling',
     author_email='coreytsterling@gmail.com',
     install_requires=[
